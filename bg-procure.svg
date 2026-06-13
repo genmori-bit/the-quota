@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#c8cfd8"/>
+    <stop offset="100%" stop-color="#b4bcc8"/>
+  </linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#909aa4"/>
+    <stop offset="100%" stop-color="#747e88"/>
+  </linearGradient>
+  <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#e8ecf2"/>
+    <stop offset="100%" stop-color="#d8dfe8"/>
+  </linearGradient>
+  <linearGradient id="cabinet" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#a8b0ba"/>
+    <stop offset="100%" stop-color="#909aa4"/>
+  </linearGradient>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#8ab0cc"/>
+    <stop offset="100%" stop-color="#b8d0e4"/>
+  </linearGradient>
+  <filter id="blur5"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+
+<!-- Ceiling -->
+<rect width="1600" height="95" fill="url(#ceil)"/>
+<rect y="92" width="1600" height="5" fill="#b0bac4" opacity="0.6"/>
+
+<!-- Back wall (neutral grey-green) -->
+<rect y="95" width="1600" height="585" fill="url(#wall)"/>
+
+<!-- Floor (vinyl/tile) -->
+<rect y="680" width="1600" height="220" fill="url(#floor)"/>
+<rect y="678" width="1600" height="6" fill="#707880" opacity="0.8"/>
+
+<!-- Tile floor pattern -->
+<line x1="0"   y1="740" x2="1600" y2="740" stroke="#848c96" stroke-width="1.5" opacity="0.40"/>
+<line x1="0"   y1="800" x2="1600" y2="800" stroke="#848c96" stroke-width="1.5" opacity="0.35"/>
+<line x1="0"   y1="860" x2="1600" y2="860" stroke="#848c96" stroke-width="1.5" opacity="0.30"/>
+<line x1="0"   y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="2" opacity="0.28"/>
+<line x1="267" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="1.5" opacity="0.20"/>
+<line x1="534" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="1.5" opacity="0.16"/>
+<line x1="800" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="1.5" opacity="0.16"/>
+<line x1="1066" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="1.5" opacity="0.16"/>
+<line x1="1333" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="1.5" opacity="0.20"/>
+<line x1="1600" y1="900" x2="800" y2="680" stroke="#848c96" stroke-width="2" opacity="0.28"/>
+
+<!-- Window (left, narrow) -->
+<rect x="80" y="150" width="220" height="380" rx="5" fill="url(#sky)"/>
+<rect x="80" y="150" width="220" height="380" rx="5" fill="none" stroke="#b0bac4" stroke-width="8"/>
+<line x1="188" y1="150" x2="188" y2="530" stroke="#b0bac4" stroke-width="6"/>
+<line x1="80"  y1="338" x2="300" y2="338" stroke="#b0bac4" stroke-width="6"/>
+<path d="M80 528 L300 528 L380 700 L0 700 Z" fill="#a8b8c8" opacity="0.14"/>
+
+<!-- Window (right, narrow) -->
+<rect x="1300" y="150" width="220" height="380" rx="5" fill="url(#sky)"/>
+<rect x="1300" y="150" width="220" height="380" rx="5" fill="none" stroke="#b0bac4" stroke-width="8"/>
+<line x1="1408" y1="150" x2="1408" y2="530" stroke="#b0bac4" stroke-width="6"/>
+<line x1="1300" y1="338" x2="1520" y2="338" stroke="#b0bac4" stroke-width="6"/>
+<path d="M1300 528 L1520 528 L1600 700 L1220 700 Z" fill="#a8b8c8" opacity="0.14"/>
+
+<!-- Left filing cabinets -->
+<rect x="320"  y="310" width="120" height="360" rx="3" fill="url(#cabinet)"/>
+<rect x="320"  y="310" width="120" height="360" rx="3" fill="none" stroke="#8890a0" stroke-width="4"/>
+<rect x="320"  y="390" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="320"  y="470" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="320"  y="550" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="340"  y="368" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="340"  y="448" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="340"  y="528" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<!-- Labels -->
+<rect x="347"  y="372" width="22" height="6" rx="1" fill="#c8d0d8" opacity="0.75"/>
+<rect x="347"  y="452" width="22" height="6" rx="1" fill="#c8d0d8" opacity="0.75"/>
+<rect x="347"  y="532" width="22" height="6" rx="1" fill="#c8d0d8" opacity="0.75"/>
+
+<rect x="452"  y="340" width="120" height="330" rx="3" fill="url(#cabinet)"/>
+<rect x="452"  y="340" width="120" height="330" rx="3" fill="none" stroke="#8890a0" stroke-width="4"/>
+<rect x="452"  y="420" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="452"  y="500" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="452"  y="580" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="472"  y="398" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="472"  y="478" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="472"  y="558" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+
+<!-- Right filing cabinets -->
+<rect x="1028" y="310" width="120" height="360" rx="3" fill="url(#cabinet)"/>
+<rect x="1028" y="310" width="120" height="360" rx="3" fill="none" stroke="#8890a0" stroke-width="4"/>
+<rect x="1028" y="390" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1028" y="470" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1028" y="550" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1048" y="368" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="1048" y="448" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="1048" y="528" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+
+<rect x="1160" y="340" width="120" height="330" rx="3" fill="url(#cabinet)"/>
+<rect x="1160" y="340" width="120" height="330" rx="3" fill="none" stroke="#8890a0" stroke-width="4"/>
+<rect x="1160" y="420" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1160" y="500" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1160" y="580" width="120" height="4" fill="#8090a0" opacity="0.6"/>
+<rect x="1180" y="398" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="1180" y="478" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+<rect x="1180" y="558" width="80" height="14" rx="3" fill="#98a0aa" opacity="0.70"/>
+
+<!-- Notice board center back wall -->
+<rect x="630" y="155" width="340" height="280" rx="4" fill="#c0c8d4" opacity="0.80"/>
+<rect x="630" y="155" width="340" height="280" rx="4" fill="none" stroke="#a0a8b4" stroke-width="6"/>
+<!-- Papers on board -->
+<rect x="648" y="172" width="140" height="100" rx="3" fill="#e8ecf4" opacity="0.80"/>
+<rect x="800" y="172" width="140" height="80"  rx="3" fill="#e0e8f2" opacity="0.75"/>
+<rect x="648" y="285" width="100" height="80"  rx="3" fill="#dce4f0" opacity="0.75"/>
+<rect x="760" y="265" width="190" height="100" rx="3" fill="#e4ecf6" opacity="0.80"/>
+<!-- Pin marks -->
+<circle cx="718" cy="178" r="5" fill="#c0a020" opacity="0.70"/>
+<circle cx="870" cy="178" r="5" fill="#c0a020" opacity="0.70"/>
+<circle cx="698" cy="291" r="5" fill="#c0a020" opacity="0.70"/>
+<circle cx="855" cy="271" r="5" fill="#c0a020" opacity="0.70"/>
+
+<!-- Fluorescent lights -->
+<rect x="350" y="14" width="280" height="22" rx="4" fill="#f4f8ff" opacity="0.95"/>
+<rect x="970" y="14" width="280" height="22" rx="4" fill="#f4f8ff" opacity="0.95"/>
+<ellipse cx="490"  cy="98" rx="200" ry="62" fill="#d4dce8" opacity="0.25"/>
+<ellipse cx="1110" cy="98" rx="200" ry="62" fill="#d4dce8" opacity="0.25"/>
+
+<!-- Desk at bottom (table for procurement meetings) -->
+<rect x="100" y="730" width="1400" height="170" rx="4" fill="#98a4ae" opacity="0.65" filter="url(#blur5)"/>
+<rect y="670" width="1600" height="12" fill="#a0aab4" opacity="0.45"/>
+</svg>

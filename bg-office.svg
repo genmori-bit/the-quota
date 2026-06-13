@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#7ab8e0"/>
+    <stop offset="50%" stop-color="#b8d8f0"/>
+    <stop offset="100%" stop-color="#d8eefa"/>
+  </linearGradient>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#dce4ee"/>
+    <stop offset="100%" stop-color="#c8d4e0"/>
+  </linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#a0aeba"/>
+    <stop offset="100%" stop-color="#7e8e9e"/>
+  </linearGradient>
+  <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#f4f7fa"/>
+    <stop offset="100%" stop-color="#e0e8f0"/>
+  </linearGradient>
+  <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+
+<!-- Ceiling -->
+<rect width="1600" height="95" fill="url(#ceil)"/>
+<rect y="92" width="1600" height="5" fill="#c0ccd8" opacity="0.6"/>
+
+<!-- Back wall -->
+<rect y="95" width="1600" height="585" fill="url(#wall)"/>
+
+<!-- Floor -->
+<rect y="680" width="1600" height="220" fill="url(#floor)"/>
+<rect y="678" width="1600" height="6" fill="#8090a2" opacity="0.7"/>
+
+<!-- Floor perspective lines -->
+<line x1="0"    y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="2" opacity="0.30"/>
+<line x1="267"  y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="1.5" opacity="0.22"/>
+<line x1="534"  y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="1.5" opacity="0.18"/>
+<line x1="800"  y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="1.5" opacity="0.18"/>
+<line x1="1066" y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="1.5" opacity="0.18"/>
+<line x1="1333" y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="1.5" opacity="0.22"/>
+<line x1="1600" y1="900" x2="800" y2="680" stroke="#8898a8" stroke-width="2" opacity="0.30"/>
+
+<!-- Left window -->
+<rect x="55" y="140" width="350" height="420" rx="6" fill="url(#sky)"/>
+<rect x="55" y="140" width="350" height="420" rx="6" fill="#fff" opacity="0.10"/>
+<rect x="55" y="140" width="350" height="420" rx="6" fill="none" stroke="#bfcbd8" stroke-width="10"/>
+<line x1="228" y1="140" x2="228" y2="560" stroke="#bfcbd8" stroke-width="7"/>
+<line x1="55"  y1="348" x2="405" y2="348" stroke="#bfcbd8" stroke-width="7"/>
+<!-- Sunlight on floor -->
+<path d="M55 558 L405 558 L520 740 L-20 740 Z" fill="#c4d4e4" opacity="0.16"/>
+
+<!-- Right window -->
+<rect x="1195" y="140" width="350" height="420" rx="6" fill="url(#sky)"/>
+<rect x="1195" y="140" width="350" height="420" rx="6" fill="#fff" opacity="0.10"/>
+<rect x="1195" y="140" width="350" height="420" rx="6" fill="none" stroke="#bfcbd8" stroke-width="10"/>
+<line x1="1368" y1="140" x2="1368" y2="560" stroke="#bfcbd8" stroke-width="7"/>
+<line x1="1195" y1="348" x2="1545" y2="348" stroke="#bfcbd8" stroke-width="7"/>
+<path d="M1195 558 L1545 558 L1620 740 L1080 740 Z" fill="#c4d4e4" opacity="0.16"/>
+
+<!-- Ceiling fluorescent lights -->
+<rect x="360" y="15" width="300" height="22" rx="5" fill="#f8fbff" opacity="0.96"/>
+<rect x="940" y="15" width="300" height="22" rx="5" fill="#f8fbff" opacity="0.96"/>
+<!-- Light glow -->
+<ellipse cx="510"  cy="100" rx="220" ry="65" fill="#dce8f8" opacity="0.30"/>
+<ellipse cx="1090" cy="100" rx="220" ry="65" fill="#dce8f8" opacity="0.30"/>
+
+<!-- Baseboard -->
+<rect y="670" width="1600" height="12" fill="#b0bcc8" opacity="0.45"/>
+
+<!-- Left desk (blurred) -->
+<rect x="-20" y="710" width="290" height="190" rx="4" fill="#8fa0b2" opacity="0.55" filter="url(#blur8)"/>
+<rect x="10"  y="640" width="170" height="85"  rx="3" fill="#7a8ea2" opacity="0.45" filter="url(#blur8)"/>
+<!-- monitor -->
+<rect x="30"  y="598" width="110" height="70"  rx="3" fill="#6a7e92" opacity="0.45" filter="url(#blur4)"/>
+<rect x="75"  y="666" width="22"  height="18"        fill="#6a7e92" opacity="0.40"/>
+
+<!-- Right desk (blurred) -->
+<rect x="1330" y="710" width="290" height="190" rx="4" fill="#8fa0b2" opacity="0.55" filter="url(#blur8)"/>
+<rect x="1420" y="640" width="170" height="85"  rx="3" fill="#7a8ea2" opacity="0.45" filter="url(#blur8)"/>
+<rect x="1460" y="598" width="110" height="70"  rx="3" fill="#6a7e92" opacity="0.45" filter="url(#blur4)"/>
+<rect x="1503" y="666" width="22"  height="18"        fill="#6a7e92" opacity="0.40"/>
+</svg>

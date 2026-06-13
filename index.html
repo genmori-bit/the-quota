@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE QUOTA ― 外資IT AE 商談シミュレーター</title>
+<meta name="description" content="外資ITのアカウントエグゼクティブとして、MEDDICで東陽精機との商談を13週で攻略するビジネスADV。">
+<meta name="theme-color" content="#050b18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="THE QUOTA ― 外資IT AE 商談シミュレーター">
+<meta property="og:description" content="MEDDICで東陽精機との商談を13週で攻略するビジネスADV。あなたの選択が四半期の数字を決める。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23050b18'/><text x='50' y='68' font-size='54' font-weight='900' text-anchor='middle' fill='%234da3ff' font-family='sans-serif'>Q</text></svg>">
+<style>
+  :root {
+    --accent: #4da3ff;
+    --accent-2: #7bbcff;
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --ink: #eef3fa;
+    --ink-dim: #a3b8d6;
+    --ink-mute: #6f86a6;
+    --glass: rgba(11,21,40,.62);
+    --glass-2: rgba(8,16,32,.84);
+    --line: rgba(132,178,242,.18);
+    --line-bright: rgba(150,195,255,.40);
+    --shadow: 0 18px 50px rgba(0,0,0,.55);
+  }
+  * { box-sizing: border-box; user-select: none; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120,170,255,.25); border-radius: 9px; }
+
+  #stage { position: fixed; inset: 0; overflow: hidden; cursor: pointer; }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; transition: background .5s; background: #0d1626; }
+  /* シーン背景 */
+  .scene-office  { background: linear-gradient(rgba(10,20,40,.38),rgba(10,20,40,.38)),  url(bg-office.svg)  center/cover no-repeat; }
+  .scene-meeting { background: linear-gradient(rgba(10,15,30,.38),rgba(10,15,30,.38)),  url(bg-meeting.svg) center/cover no-repeat; }
+  .scene-exec    { background: linear-gradient(rgba(5,0,0,.22),rgba(5,0,0,.22)),        url(bg-exec.svg)    center/cover no-repeat; }
+  .scene-online  { background: linear-gradient(rgba(0,10,30,.25),rgba(0,10,30,.25)),    url(bg-online.svg)  center/cover no-repeat; }
+  .scene-procure { background: linear-gradient(rgba(10,12,20,.38),rgba(10,12,20,.38)),  url(bg-procure.svg) center/cover no-repeat; }
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background:
+      radial-gradient(ellipse at 50% 34%, transparent 48%, rgba(0,2,8,.42) 86%, rgba(0,1,5,.62) 100%);
+  }
+  /* 画面下部スクリム: キャラの足元を馴染ませ、テキストの可読性を上げる */
+  #floorScrim {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 46%; z-index: 6;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 0%, rgba(4,9,18,.55) 58%, rgba(3,7,15,.88) 100%);
+  }
+  .tint { position: absolute; inset: 0; pointer-events: none; transition: background .6s; z-index: 7; }
+
+  /* ---------- sprites (実写を楕円マスクでソフトに) ---------- */
+  #sprites { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+  .sprite {
+    position: absolute; bottom: 116px; left: 50%;
+    width: min(400px, 45vw); height: min(60vh, 560px);
+    transform: translateX(-50%);
+    background-repeat: no-repeat;
+    -webkit-mask-image: linear-gradient(to bottom, #000 58%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to bottom, #000 58%, rgba(0,0,0,0) 100%);
+    transition: filter .4s ease, transform .4s ease, opacity .4s ease;
+    animation: spriteIn .5s cubic-bezier(.2,.7,.3,1);
+    /* 接地影 + ごく薄いリムライトで背景から立たせる */
+    filter: drop-shadow(0 20px 26px rgba(0,0,0,.62)) drop-shadow(0 0 1px rgba(150,190,255,.45));
+  }
+  .sprite.pos-l { left: 29%; }
+  .sprite.pos-r { left: 71%; }
+  .sprite.dim {
+    filter: brightness(.42) saturate(.65) blur(.4px) drop-shadow(0 18px 26px rgba(0,0,0,.6));
+  }
+  .sprite.half {
+    filter: brightness(.82) saturate(.92) drop-shadow(0 18px 26px rgba(0,0,0,.6)) drop-shadow(0 0 1px rgba(150,190,255,.4));
+  }
+  .sprite.active {
+    transform: translateX(-50%) scale(1.035);
+    filter: brightness(1.04) drop-shadow(0 22px 30px rgba(0,0,0,.62)) drop-shadow(0 0 2px rgba(150,195,255,.55));
+  }
+  @keyframes spriteIn { from { opacity: 0; transform: translateX(-50%) translateY(26px); } }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 30;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px 30px;
+    background: linear-gradient(180deg, rgba(2,7,16,.94) 0%, rgba(2,7,16,.5) 55%, transparent 100%);
+    font-size: .78rem; pointer-events: none;
+  }
+  #hud .logo {
+    font-weight: 800; letter-spacing: .16em; font-size: .92rem; color: #fff;
+    padding-right: 14px; margin-right: 4px;
+    border-right: 1px solid var(--line);
+    text-shadow: 0 0 18px rgba(77,163,255,.4);
+  }
+  #hud .logo span { color: var(--accent); }
+  .hud-item {
+    display: flex; align-items: center; gap: 8px; white-space: nowrap;
+    background: var(--glass); border: 1px solid var(--line);
+    border-radius: 10px; padding: 5px 11px;
+    color: var(--ink-dim);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 12px rgba(0,0,0,.25);
+    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+  }
+  .hud-item b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hud-item.bump { animation: hudBump .65s ease-out; }
+  @keyframes hudBump {
+    0% { box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 rgba(77,163,255,0); }
+    25% { box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 0 18px rgba(77,163,255,.55); border-color: var(--accent); }
+    100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 12px rgba(0,0,0,.25); }
+  }
+  .hud-bar { width: 92px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .hud-bar i { display: block; height: 100%; border-radius: 99px; transition: width .55s cubic-bezier(.2,.7,.3,1); }
+  #trustFill { background: linear-gradient(90deg, #f59e0b, #4ade80); box-shadow: 0 0 8px rgba(74,222,128,.4); }
+  #weekFill { background: linear-gradient(90deg, #2f7fd8, var(--accent-2)); }
+  .hud-danger { color: var(--bad); font-weight: 700; }
+  #hud .spacer { flex: 1; }
+  .hud-btn {
+    pointer-events: auto; cursor: pointer;
+    background: var(--glass); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px;
+    font: inherit; font-size: .76rem; letter-spacing: .03em; padding: 6px 13px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 12px rgba(0,0,0,.25);
+    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+    transition: border-color .16s, background .16s, box-shadow .16s, transform .1s;
+  }
+  .hud-btn:hover { border-color: var(--accent); background: rgba(24,52,98,.7); box-shadow: 0 0 16px rgba(77,163,255,.3); }
+  .hud-btn:active { transform: translateY(1px); }
+  .hud-btn:focus-visible { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 2px rgba(123,188,255,.45); }
+
+  #sceneTag {
+    position: absolute; top: 60px; left: 18px; z-index: 25;
+    background: var(--glass-2); border: 1px solid var(--line-bright);
+    border-radius: 999px; padding: 5px 18px; font-size: .75rem; letter-spacing: .05em;
+    color: #cfe3ff; pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 4px 14px rgba(0,0,0,.35);
+    -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+  }
+
+  /* ---------- message window ---------- */
+  #msgbox {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    width: min(960px, 94vw); min-height: 150px; z-index: 20;
+    background: linear-gradient(180deg, rgba(9,18,34,.84), rgba(4,9,19,.93));
+    border: 1px solid var(--line-bright);
+    border-radius: 18px;
+    padding: 30px 34px 26px;
+    /* 二重線風: 外側影 + 内側ハイライト + 内側うっすらブルーの縁 */
+    box-shadow:
+      0 22px 60px rgba(0,0,0,.62),
+      inset 0 1px 0 rgba(255,255,255,.08),
+      inset 0 0 0 1px rgba(120,170,255,.06);
+    -webkit-backdrop-filter: blur(11px); backdrop-filter: blur(11px);
+  }
+  #msgbox.anim { animation: boxUp .42s cubic-bezier(.2,.7,.3,1); }
+  @keyframes boxUp { from { opacity: 0; transform: translate(-50%, 16px); } }
+  #namePlate {
+    position: absolute; top: -15px; left: 24px;
+    background: linear-gradient(135deg, #2877d8, #0c3d7e);
+    border: 1px solid rgba(160,205,255,.6);
+    border-radius: 9px; padding: 5px 20px;
+    font-size: .82rem; font-weight: 700; letter-spacing: .05em;
+    box-shadow: 0 6px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  #msgText { font-size: 1.02rem; line-height: 1.92; letter-spacing: .012em; min-height: 3.84em; color: #eaf1fb; }
+  #msgText b { color: #9cc8ff; font-weight: 700; }
+  #cursor {
+    position: absolute; right: 18px; bottom: 14px;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center; font-size: .68rem; color: #08111f;
+    background: var(--accent); box-shadow: 0 0 14px rgba(77,163,255,.6);
+    animation: bounce 1.1s infinite; opacity: 0;
+  }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+
+  /* ---------- choices ---------- */
+  #choices {
+    position: absolute; left: 50%; bottom: 208px; transform: translateX(-50%);
+    width: min(840px, 92vw); z-index: 22;
+    display: none; flex-direction: column; gap: 10px;
+  }
+  #choices.show { display: flex; }
+  .choice {
+    position: relative; cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(180deg, rgba(12,24,46,.82), rgba(7,15,30,.9));
+    border: 1px solid var(--line-bright);
+    color: var(--ink); border-radius: 13px;
+    padding: 14px 20px 14px 15px; font: inherit; font-size: .95rem; line-height: 1.55;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 6px 20px rgba(0,0,0,.32);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    animation: chIn .34s cubic-bezier(.2,.7,.3,1) backwards;
+    transition: border-color .16s, background .16s, transform .16s, box-shadow .16s, opacity .16s;
+  }
+  .choice .num {
+    flex-shrink: 0; width: 28px; text-align: center;
+    font-size: .7rem; font-weight: 800; letter-spacing: .04em;
+    color: var(--accent-2); font-variant-numeric: tabular-nums; opacity: .8;
+    border-right: 1px solid var(--line); padding-right: 13px; margin-right: 1px;
+    transition: color .16s, opacity .16s;
+  }
+  .choice .txt { flex: 1; }
+  .choice:nth-child(1) { animation-delay: 0s; }
+  .choice:nth-child(2) { animation-delay: .07s; }
+  .choice:nth-child(3) { animation-delay: .14s; }
+  .choice:nth-child(4) { animation-delay: .21s; }
+  .choice:hover, .choice.focus {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(26,60,114,.92), rgba(15,38,74,.94));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(77,163,255,.3), inset 0 1px 0 rgba(255,255,255,.09);
+  }
+  .choice:hover .num, .choice.focus .num { opacity: 1; color: #d4e6ff; }
+  .choice:focus-visible { outline: none; }
+  .choice.picked { animation: chPick .42s ease-out forwards; border-color: #c4e2ff; }
+  .choice.dimmed { opacity: .32; transform: scale(.99); filter: saturate(.7); }
+  @keyframes chIn { from { opacity: 0; transform: translateY(16px); } }
+  @keyframes chPick {
+    0%   { box-shadow: 0 0 0 rgba(140,200,255,0); }
+    30%  { background: linear-gradient(180deg, rgba(70,132,212,.96), rgba(40,86,160,.96)); box-shadow: 0 0 30px rgba(150,205,255,.72); }
+    100% { box-shadow: 0 0 0 rgba(140,200,255,0); }
+  }
+
+  /* ---------- delta chips ---------- */
+  #deltas {
+    position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+    z-index: 40; display: flex; flex-direction: column; gap: 7px; align-items: center;
+    pointer-events: none;
+  }
+  .chip {
+    background: rgba(5,12,26,.92); border-radius: 999px;
+    padding: 5px 18px; font-size: .85rem; font-weight: 700;
+    border: 1px solid rgba(255,255,255,.25);
+    animation: chipIn .35s ease-out, chipOut .5s ease-in 2.1s forwards;
+  }
+  .chip.up { color: var(--good); border-color: rgba(74,222,128,.5); }
+  .chip.down { color: var(--bad); border-color: rgba(248,113,113,.5); }
+  .chip.flat { color: #cbd5e1; }
+  .chip.meddic { color: #9cc8ff; border-color: rgba(77,163,255,.6); }
+  @keyframes chipIn { from { opacity: 0; transform: translateY(-12px) scale(.9); } }
+  @keyframes chipOut { to { opacity: 0; transform: translateY(-10px); } }
+
+  /* ---------- drawer (資料パネル) ---------- */
+  #drawerScrim {
+    position: absolute; inset: 0; z-index: 45;
+    background: rgba(2,6,14,.55);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  #drawerScrim.on { opacity: 1; pointer-events: auto; }
+  #drawer {
+    position: absolute; top: 0; right: -360px; bottom: 0; width: 340px; z-index: 50;
+    background: linear-gradient(180deg, rgba(8,16,32,.96), rgba(5,10,22,.97));
+    border-left: 1px solid var(--line-bright);
+    padding: 22px 22px 24px; overflow-y: auto;
+    transition: right .32s cubic-bezier(.2,.7,.3,1); cursor: default;
+    font-size: .84rem;
+    box-shadow: -24px 0 70px rgba(0,0,0,.55);
+  }
+  #drawer.open { right: 0; }
+  #drawer .drawer-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 0 0 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  #drawer .drawer-head .title {
+    font-size: .78rem; font-weight: 800; letter-spacing: .14em; color: #cfe3ff;
+  }
+  .drawer-close {
+    cursor: pointer; width: 30px; height: 30px; border-radius: 8px;
+    background: var(--glass); border: 1px solid var(--line); color: var(--ink-dim);
+    font-size: .9rem; line-height: 1; display: grid; place-items: center;
+    transition: border-color .15s, background .15s, color .15s;
+  }
+  .drawer-close:hover { border-color: var(--accent); color: #fff; background: rgba(24,52,98,.7); }
+  .drawer-close:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(123,188,255,.5); }
+  #drawer h3 {
+    font-size: .72rem; letter-spacing: .12em; color: var(--ink-mute);
+    margin: 20px 0 9px; text-transform: uppercase;
+  }
+  .d-row { display: flex; justify-content: space-between; padding: 4px 0; color: var(--ink-dim); }
+  .d-row b { color: var(--ink); }
+  .meddic-item { display: flex; gap: 9px; align-items: center; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,.1); }
+  .meddic-item .dot {
+    width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.25); display: grid; place-items: center; font-size: .65rem;
+  }
+  .meddic-item.on .dot { background: var(--good); border-color: var(--good); color: #06270f; }
+  .meddic-item.on .dot::after { content: "✓"; }
+  .meddic-item small { display: block; color: #7e95b5; font-size: .7rem; }
+  #drawerNotes { color: #aebed2; font-size: .78rem; line-height: 1.7; }
+
+  /* ---------- overlays (title / ending / transition) ---------- */
+  .overlay {
+    position: absolute; inset: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #fade {
+    position: absolute; inset: 0; z-index: 55; background: #000;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  #fade.on { opacity: 1; }
+
+  #title {
+    flex-direction: column; cursor: pointer; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 68%, #0e2a50 0%, #071027 55%, #04070f 100%);
+    animation: fadeIn .7s ease-out;
+  }
+  /* 深みのためのビネット + ごく薄いノイズ */
+  #title::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 42%, transparent 46%, rgba(0,2,8,.7) 100%);
+  }
+  #title::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  #title h1 {
+    position: relative; z-index: 1;
+    font-size: clamp(2.7rem, 8.2vw, 5.2rem); margin: 0; letter-spacing: .2em; font-weight: 900;
+    background: linear-gradient(180deg, #ffffff 0%, #cfe4ff 45%, #6fb0ff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 60px rgba(77,163,255,.4);
+    filter: drop-shadow(0 4px 24px rgba(77,163,255,.25));
+    animation: titleIn 1.2s cubic-bezier(.2,.7,.3,1);
+  }
+  #title .sub {
+    position: relative; z-index: 1;
+    color: #c2d6f0; letter-spacing: .14em; margin: 14px 0 54px; font-size: .96rem;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+    animation: titleIn 1.2s ease-out .2s backwards;
+  }
+  #title .start {
+    position: relative; z-index: 1; overflow: hidden;
+    font-size: 1.04rem; color: #eaf3ff; border: 1px solid rgba(140,185,255,.55);
+    padding: 14px 60px; border-radius: 999px; letter-spacing: .22em; font-weight: 700;
+    background: linear-gradient(180deg, rgba(28,62,116,.45), rgba(14,34,68,.5));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 8px 26px rgba(0,0,0,.4);
+    animation: titleIn 1.2s ease-out .35s backwards, pulse 2.4s 1.6s infinite;
+    transition: border-color .2s, box-shadow .2s, transform .12s, background .2s;
+  }
+  /* ホバー時に光が走る */
+  #title .start::before {
+    content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(180,215,255,.35), transparent);
+    transform: skewX(-18deg); transition: left .55s ease;
+  }
+  #title .start:hover {
+    border-color: var(--accent-2); transform: translateY(-1px);
+    background: linear-gradient(180deg, rgba(38,80,148,.6), rgba(20,46,90,.62));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 0 30px rgba(77,163,255,.45);
+  }
+  #title .start:hover::before { left: 130%; }
+  #title .start:focus-visible { outline: none; border-color: #cfe6ff; box-shadow: 0 0 0 3px rgba(123,188,255,.5), 0 0 30px rgba(77,163,255,.4); }
+  #title .hint { position: relative; z-index: 1; margin-top: 28px; font-size: .76rem; color: #7089a8; animation: titleIn 1.2s ease-out .5s backwards; }
+  @keyframes titleIn { from { opacity: 0; transform: translateY(18px); } }
+  @keyframes fadeIn { from { opacity: 0; } }
+  @keyframes pulse { 0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 0 0 rgba(77,163,255,.4); } 50% { box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 0 28px rgba(77,163,255,.5); } }
+
+  #ending { display: none; background: rgba(2,6,14,.9); backdrop-filter: blur(4px); cursor: default; }
+  #endingCard {
+    width: min(760px, 94vw); max-height: 90vh; overflow-y: auto;
+    background: linear-gradient(180deg, #0a1730, #060d1d);
+    border: 1px solid rgba(120,170,255,.4); border-radius: 18px;
+    padding: 36px 40px;
+  }
+  #endingCard h2 { margin: 0 0 6px; font-size: 1.45rem; }
+  #endingCard h2.win { color: var(--good); } #endingCard h2.slip { color: var(--warn); } #endingCard h2.loss { color: var(--bad); }
+  #endingCard .story { font-size: .92rem; line-height: 2; color: #d7e2f2; }
+  #endingCard .story b { color: #9cc8ff; }
+  .score-line { display: flex; align-items: baseline; gap: 12px; margin: 22px 0 2px; }
+  #scoreNum { font-size: 3.2rem; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+  .rank { font-size: .92rem; font-weight: 700; color: #9cc8ff; margin-bottom: 12px; }
+  .b-table { width: 100%; border-collapse: collapse; font-size: .84rem; margin: 8px 0 20px; }
+  .b-table td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .b-table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .review-item {
+    border-left: 3px solid #44506a; background: rgba(255,255,255,.04);
+    border-radius: 0 9px 9px 0; padding: 9px 14px; margin-bottom: 9px; font-size: .82rem; line-height: 1.7;
+  }
+  .review-item.good { border-left-color: var(--good); }
+  .review-item.bad { border-left-color: var(--bad); }
+  .review-item.neutral { border-left-color: var(--warn); }
+  .review-item b { display: block; color: #8da6c8; font-size: .76rem; margin-bottom: 2px; }
+  .restart {
+    margin-top: 10px; width: 100%; cursor: pointer;
+    background: linear-gradient(135deg, #1b66c9, #0b3f86); color: #fff;
+    border: none; border-radius: 10px; padding: 13px; font: inherit; font-size: .95rem; font-weight: 700;
+  }
+  .restart:hover { filter: brightness(1.15); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1180px) {
+    #hud { gap: 8px; font-size: .74rem; padding: 11px 14px 28px; }
+    .hud-item { padding: 4px 9px; gap: 6px; }
+    .hud-bar { width: 74px; }
+  }
+  @media (max-width: 900px) {
+    .hud-bar { display: none; }
+    #hud .logo { padding-right: 10px; }
+  }
+  @media (max-width: 700px) {
+    #hud { gap: 7px; font-size: .68rem; }
+    .hud-item { padding: 3px 8px; }
+    .sprite { height: 44vh; bottom: 178px; }
+    .sprite.pos-l { left: 27%; } .sprite.pos-r { left: 73%; }
+    #msgText { font-size: .92rem; line-height: 1.8; }
+    #msgbox { padding: 24px 22px 22px; }
+    #choices { bottom: 206px; }
+    .choice { font-size: .9rem; padding: 12px 16px 12px 13px; }
+  }
+  /* 低い画面でも選択肢とテキストが操作可能に */
+  @media (max-height: 720px) {
+    .sprite { height: 50vh; bottom: 168px; }
+    #choices { bottom: 190px; gap: 8px; }
+    .choice { padding: 11px 18px 11px 14px; }
+    #msgbox { min-height: 124px; padding: 22px 28px 18px; }
+    #msgText { line-height: 1.7; min-height: 3.2em; }
+  }
+  @media (max-height: 600px) {
+    .sprite { height: 46vh; bottom: 150px; }
+    #choices { bottom: 172px; }
+    #msgbox { min-height: 104px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div class="bg" id="bg"></div>
+  <div class="tint" id="tint"></div>
+  <div class="vignette"></div>
+  <div id="sprites"></div>
+  <div id="floorScrim"></div>
+
+  <div id="hud">
+    <span class="logo">THE <span>QUOTA</span></span>
+    <span class="hud-item" id="hi-week">📅 <b id="hudWeek"></b><span class="hud-bar"><i id="weekFill"></i></span></span>
+    <span class="hud-item" id="hi-trust">🤝 信頼 <b id="hudTrust"></b><span class="hud-bar"><i id="trustFill"></i></span></span>
+    <span class="hud-item" id="hi-disc">💰 値引き <b id="hudDisc"></b></span>
+    <span class="hud-item" id="hi-meddic">📋 MEDDIC <b id="hudMeddic"></b></span>
+    <span class="spacer"></span>
+    <button class="hud-btn" id="sndBtn">🔊</button>
+    <button class="hud-btn" id="drawerBtn">案件状況</button>
+  </div>
+  <div id="sceneTag"></div>
+  <div id="deltas"></div>
+
+  <div id="msgbox">
+    <div id="namePlate"></div>
+    <div id="msgText"></div>
+    <div id="cursor">▼</div>
+  </div>
+  <div id="choices"></div>
+
+  <div id="drawerScrim"></div>
+  <div id="drawer"></div>
+  <div id="fade"></div>
+
+  <div class="overlay" id="ending"><div id="endingCard"></div></div>
+
+  <div class="overlay" id="title">
+    <h1>THE QUOTA</h1>
+    <div class="sub">外資IT AE 商談シミュレーター ― MEDDIC で東陽精機を攻略せよ</div>
+    <div class="start" id="startBtn" tabindex="0" role="button">▶ &nbsp;GAME START</div>
+    <div class="hint">クリック / スペースキーで読み進める ・ 右上「案件状況」で MEDDIC を確認</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   サウンド (Web Audio 生成 ― 素材ファイル不要)
+============================================================ */
+const AudioFX = {
+  ctx: null, muted: false,
+  init() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
+  },
+  tone(freq, dur, type, gain, when) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime + (when || 0);
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(gain || .06, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + dur + .05);
+  },
+  blip()   { this.tone(740, .05, "square", .025); },
+  select() { this.tone(620, .07, "triangle", .06); this.tone(930, .09, "triangle", .05, .05); },
+  good()   { this.tone(660, .12, "triangle", .07); this.tone(880, .16, "triangle", .07, .09); },
+  bad()    { this.tone(311, .16, "sawtooth", .045); this.tone(233, .22, "sawtooth", .045, .11); },
+  fanfare(){ [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, .3, "triangle", .08, i * .13)); },
+  lose()   { [392, 370, 349, 311].forEach((f, i) => this.tone(f, .34, "sine", .06, i * .2)); },
+};
+
+/* ============================================================
+   キャラクター立ち絵 (パラメトリックSVG)
+============================================================ */
+const CHARS = {
+  // 実在モデルを再現: ①阿部 ②五十嵐 ③代々原 ④DERA ⑤高牟礼
+  kevin:     { name: "阿部(営業部長)",        skin: "#f0c9a6", hair: "#1d1a17", suit: "#26375c", tie: "#2b3656", shirt: "#f6f8fb", style: "messy",  tiePattern: "dots", dotColor: "#9fb0cf" },
+  sato:      { name: "五十嵐(情シス課長)",     skin: "#f3d0ad", hair: "#211d1a", suit: "#23314f", tie: "#34669f", shirt: "#ffffff", style: "volume", tiePattern: "dots", dotColor: "#d2e3f7" },
+  murata:    { name: "DERA(製造部長)",        skin: "#f1cba8", hair: "#1c1917", suit: "#243152", tie: "#2a3552", shirt: "#f3e7ea", style: "crop" },
+  takahashi: { name: "代々原(経営企画 常務)",  skin: "#eecaa3", hair: "#1a1816", suit: "#1b2540", tie: "#1d2c4c", shirt: "#ffffff", style: "slick", pocket: true },
+  nishino:   { name: "高牟礼(購買部)",         skin: "#eecba6", hair: "#1e1b18", suit: "#1f2738", tie: "#3a3f49", shirt: "#ffffff", style: "center" },
+};
+
+function charSVG(id, face) {
+  const c = CHARS[id];
+  face = face || "normal";
+
+  /* --- 眉 --- */
+  // [左眉: 外側y, 内側y] (内側=鼻側)
+  const browY = {
+    normal:  [140, 138], smile: [137, 135], angry: [134, 150],
+    worried: [146, 132], shock: [128, 126],
+  }[face];
+  const brows = `
+    <path d="M126 ${browY[0]} Q146 ${browY[0] - 5} 166 ${browY[1]}" stroke="${c.hair}" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M234 ${browY[0]} Q214 ${browY[0] - 5} 194 ${browY[1]}" stroke="${c.hair}" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+
+  /* --- 目 --- */
+  let eyes;
+  if (face === "smile") {
+    eyes = `<path d="M136 170 Q148 159 160 170" stroke="#2b2620" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M200 170 Q212 159 224 170" stroke="#2b2620" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  } else if (face === "shock") {
+    eyes = `<circle cx="148" cy="169" r="9" fill="#2b2620"/><circle cx="151" cy="166" r="2.6" fill="#fff"/>
+            <circle cx="212" cy="169" r="9" fill="#2b2620"/><circle cx="215" cy="166" r="2.6" fill="#fff"/>`;
+  } else {
+    eyes = `<ellipse cx="148" cy="169" rx="6" ry="${face === "angry" ? 5 : 7}" fill="#2b2620"/>
+            <ellipse cx="212" cy="169" rx="6" ry="${face === "angry" ? 5 : 7}" fill="#2b2620"/>`;
+    if (face === "angry") eyes += `<path d="M138 161 L160 165" stroke="#2b2620" stroke-width="3"/><path d="M222 161 L200 165" stroke="#2b2620" stroke-width="3"/>`;
+  }
+
+  /* --- 口 --- */
+  const mouth = {
+    normal:  `<path d="M167 213 L193 213" stroke="#9c5a4a" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    smile:   `<path d="M161 207 Q180 225 199 207" stroke="#9c5a4a" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    angry:   `<path d="M162 219 Q180 204 198 219" stroke="#9c5a4a" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    worried: `<path d="M164 215 Q172 209 180 215 Q188 221 196 215" stroke="#9c5a4a" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+    shock:   `<ellipse cx="180" cy="218" rx="11" ry="14" fill="#6e3a31"/>`,
+  }[face];
+
+  /* --- 髪型 --- */
+  let hairSvg = "";
+  if (c.style === "messy") {
+    // ①阿部: 中庸ミディアム、前髪を流したやや無造作なヘア
+    hairSvg = `<path d="M104 150 Q98 68 180 58 Q262 68 258 150 Q250 118 232 106 Q206 96 188 112 Q172 122 150 120 Q126 118 118 136 Q110 124 104 150 Z" fill="${c.hair}"/>
+      <path d="M104 150 Q96 178 107 194 L118 152 Z" fill="${c.hair}"/>
+      <path d="M258 150 Q266 178 255 194 L244 152 Z" fill="${c.hair}"/>`;
+  } else if (c.style === "volume") {
+    // ②五十嵐: トップにボリュームを持たせた立ち上げ・サイド流し
+    hairSvg = `<path d="M100 152 C96 68 120 48 156 47 C214 45 252 82 258 152 Q250 114 230 104 Q204 94 186 110 Q166 118 150 114 Q126 112 116 132 Q108 118 100 152 Z" fill="${c.hair}"/>
+      <path d="M100 152 Q94 180 106 196 L116 154 Z" fill="${c.hair}"/>
+      <path d="M258 152 Q266 178 254 194 L244 154 Z" fill="${c.hair}"/>`;
+  } else if (c.style === "slick") {
+    // ③代々原: オールバック、額を出した隙のないスリックヘア
+    hairSvg = `<path d="M108 154 Q104 84 180 78 Q256 84 252 154 Q246 122 224 112 Q200 104 180 104 Q160 104 136 112 Q116 122 108 154 Z" fill="${c.hair}"/>
+      <path d="M138 96 Q180 88 224 102" stroke="#ffffff" stroke-width="1.6" fill="none" opacity=".13"/>
+      <path d="M134 108 Q180 100 228 112" stroke="#ffffff" stroke-width="1.6" fill="none" opacity=".10"/>`;
+  } else if (c.style === "crop") {
+    // ④DERA: 短めで束感のあるクロップ。ちょい無造作
+    hairSvg = `<path d="M110 150 C106 92 120 72 142 70 C152 62 160 72 170 67 C180 61 188 73 198 68 C210 62 220 73 230 73 C246 78 252 102 250 150 Q244 112 214 104 Q186 100 168 112 Q146 118 128 112 Q116 118 110 150 Z" fill="${c.hair}"/>`;
+  } else if (c.style === "center") {
+    // ⑤高牟礼: センター分け、左右へ流したきれいめヘア
+    hairSvg = `<path d="M104 152 Q100 70 180 62 Q260 70 256 152 Q250 116 232 106 Q210 98 188 114 Q184 100 180 96 Q176 100 172 114 Q150 98 128 106 Q110 116 104 152 Z" fill="${c.hair}"/>
+      <path d="M104 152 Q97 178 108 194 L118 154 Z" fill="${c.hair}"/>
+      <path d="M256 152 Q265 178 253 194 L244 154 Z" fill="${c.hair}"/>
+      <path d="M180 66 Q179 80 180 94" stroke="${c.skin}" stroke-width="3" fill="none" opacity=".45"/>`;
+  } else if (c.style === "sidepart") {
+    hairSvg = `<path d="M108 142 Q106 72 180 66 Q254 72 252 142 Q250 104 210 96 Q160 90 132 112 Q112 124 108 142 Z" fill="${c.hair}"/>
+               <path d="M106 138 Q100 172 108 190 L120 146 Z" fill="${c.hair}"/>
+               <path d="M254 138 Q260 172 252 190 L240 146 Z" fill="${c.hair}"/>`;
+  } else if (c.style === "short") {
+    hairSvg = `<path d="M108 138 Q108 70 180 64 Q252 70 252 138 Q244 102 196 94 Q138 92 116 118 Q110 126 108 138 Z" fill="${c.hair}"/>`;
+  } else if (c.style === "bald") {
+    hairSvg = `<path d="M104 148 Q98 184 110 200 L124 152 Z" fill="${c.hair}"/>
+               <path d="M256 148 Q262 184 250 200 L236 152 Z" fill="${c.hair}"/>
+               <path d="M120 112 Q150 88 180 88 Q210 88 240 112" stroke="${c.hair}" stroke-width="5" fill="none" opacity=".5"/>`;
+  } else if (c.style === "swept") {
+    hairSvg = `<path d="M104 144 Q100 60 180 56 Q260 60 256 144 Q252 96 206 86 Q146 80 118 110 Q106 124 104 144 Z" fill="${c.hair}"/>
+               <path d="M102 140 Q96 176 106 194 L118 148 Z" fill="${c.hair}"/>
+               <path d="M258 140 Q264 176 254 194 L242 148 Z" fill="${c.hair}"/>`;
+  } else { // neat
+    hairSvg = `<path d="M110 140 Q108 74 180 68 Q252 74 250 140 Q246 106 200 98 Q146 94 126 116 Q114 126 110 140 Z" fill="${c.hair}"/>`;
+  }
+
+  const glasses = c.glasses ? `
+    <rect x="124" y="152" width="48" height="36" rx="9" fill="rgba(255,255,255,.07)" stroke="#3a3f49" stroke-width="3.5"/>
+    <rect x="188" y="152" width="48" height="36" rx="9" fill="rgba(255,255,255,.07)" stroke="#3a3f49" stroke-width="3.5"/>
+    <path d="M172 166 Q180 162 188 166" stroke="#3a3f49" stroke-width="3.5" fill="none"/>
+    <path d="M124 164 L110 158 M236 164 L250 158" stroke="#3a3f49" stroke-width="3.5"/>` : "";
+
+  const beard = c.beard ? `<path d="M122 198 Q180 262 238 198 Q236 234 180 246 Q124 234 122 198 Z" fill="${c.hair}" opacity=".28"/>` : "";
+  const wrinkles = c.old ? `
+    <path d="M134 192 Q142 196 150 193" stroke="#c79a72" stroke-width="2.5" fill="none" opacity=".6"/>
+    <path d="M226 192 Q218 196 210 193" stroke="#c79a72" stroke-width="2.5" fill="none" opacity=".6"/>
+    <path d="M158 122 Q180 116 202 122" stroke="#c79a72" stroke-width="2" fill="none" opacity=".4"/>` : "";
+
+  const tie = c.tie
+    ? `<path d="M180 304 L166 322 L180 398 L194 322 Z" fill="${c.tie}"/><path d="M168 296 L192 296 L186 312 L174 312 Z" fill="${c.tie}"/>`
+    : `<path d="M158 286 L180 318 L202 286" stroke="${c.shirt}" stroke-width="5" fill="none"/>`;
+  // ネクタイのドット柄(阿部・五十嵐)
+  const dots = (c.tie && c.tiePattern === "dots")
+    ? [[174,334],[186,338],[178,349],[170,360],[187,361],[180,372],[173,383],[187,384]]
+        .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.3" fill="${c.dotColor || "#cdd9ee"}"/>`).join("")
+    : "";
+  // ポケットチーフ(代々原)
+  const pocket = c.pocket
+    ? `<path d="M212 320 L242 320 L238 309 Q227 315 216 309 Z" fill="#f7f9fc"/>` : "";
+
+  return `<svg viewBox="0 0 360 440" xmlns="http://www.w3.org/2000/svg">
+    <rect x="158" y="232" width="44" height="58" rx="14" fill="${c.skin}" />
+    <path d="M38 440 L38 366 Q38 314 102 298 L146 284 L180 306 L214 284 L258 298 Q322 314 322 366 L322 440 Z" fill="${c.suit}"/>
+    <path d="M146 284 L180 360 L214 284 L200 277 L180 302 L160 277 Z" fill="${c.shirt}"/>
+    ${tie}${dots}
+    <path d="M146 284 L120 320 L150 348 L180 306 Z" fill="rgba(0,0,0,.18)"/>
+    <path d="M214 284 L240 320 L210 348 L180 306 Z" fill="rgba(0,0,0,.18)"/>
+    ${pocket}
+    <circle cx="106" cy="170" r="13" fill="${c.skin}"/>
+    <circle cx="254" cy="170" r="13" fill="${c.skin}"/>
+    <ellipse cx="180" cy="160" rx="74" ry="82" fill="${c.skin}"/>
+    ${hairSvg}
+    ${brows}
+    ${eyes}
+    ${glasses}
+    <path d="M178 178 Q174 192 180 196" stroke="#d8a274" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    ${mouth}
+    ${beard}
+    ${wrinkles}
+  </svg>`;
+}
+
+/* ============================================================
+   背景 (SVG)
+============================================================ */
+const BGS = {
+  office: `<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="osky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#aac9e8"/><stop offset="1" stop-color="#e8eef5"/></linearGradient></defs>
+    <rect width="1280" height="500" fill="url(#osky)"/>
+    <g fill="#7e9cba" opacity=".85">
+      <rect x="60" y="240" width="90" height="260"/><rect x="180" y="180" width="120" height="320"/>
+      <rect x="340" y="280" width="80" height="220"/><rect x="900" y="200" width="110" height="300"/>
+      <rect x="1050" y="260" width="90" height="240"/><rect x="460" y="230" width="100" height="270"/>
+      <rect x="740" y="300" width="120" height="200"/>
+    </g>
+    <g stroke="#ffffff" stroke-width="14" opacity=".9">
+      <line x1="320" y1="0" x2="320" y2="500"/><line x1="640" y1="0" x2="640" y2="500"/><line x1="960" y1="0" x2="960" y2="500"/>
+      <line x1="0" y1="250" x2="1280" y2="250"/>
+    </g>
+    <rect width="1280" height="720" y="500" fill="#9aa7b8"/>
+    <rect width="1280" height="14" y="494" fill="#c3ccd8"/>
+    <g fill="#6b7686"><rect x="80" y="540" width="300" height="20" rx="6"/><rect x="110" y="560" width="240" height="120"/>
+      <rect x="880" y="540" width="300" height="20" rx="6"/><rect x="910" y="560" width="240" height="120"/></g>
+  </svg>`,
+
+  meeting: `<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1280" height="720" fill="#d9dee7"/>
+    <rect width="1280" height="300" y="420" fill="#aab3c2"/>
+    <rect x="80" y="90" width="420" height="270" rx="8" fill="#f6f8fa" stroke="#9aa5b5" stroke-width="8"/>
+    <g stroke="#b9c4d4" stroke-width="6"><line x1="120" y1="150" x2="420" y2="150"/><line x1="120" y1="200" x2="380" y2="200"/><line x1="120" y1="250" x2="410" y2="250"/></g>
+    <rect x="640" y="60" width="560" height="320" fill="#bcd4ea"/>
+    <g stroke="#f0f4f8" stroke-width="12"><line x1="920" y1="60" x2="920" y2="380"/><line x1="640" y1="220" x2="1200" y2="220"/></g>
+    <g fill="#8aa6c0" opacity=".8"><rect x="700" y="250" width="60" height="130"/><rect x="800" y="200" width="80" height="180"/><rect x="1000" y="230" width="70" height="150"/><rect x="1100" y="180" width="60" height="200"/></g>
+    <path d="M0 720 L180 480 L1100 480 L1280 720 Z" fill="#e7e2d6"/>
+    <path d="M0 720 L180 480 L1100 480 L1280 720 Z" fill="url(#mt)" opacity=".25"/>
+    <defs><linearGradient id="mt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#a59b85"/></linearGradient></defs>
+  </svg>`,
+
+  exec: `<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1280" height="720" fill="#3a2e26"/>
+    <g fill="#4a3b30"><rect x="0" y="0" width="150" height="720"/><rect x="170" y="0" width="150" height="720"/><rect x="340" y="0" width="150" height="720"/><rect x="510" y="0" width="150" height="720"/><rect x="680" y="0" width="150" height="720"/><rect x="850" y="0" width="150" height="720"/><rect x="1020" y="0" width="150" height="720"/><rect x="1190" y="0" width="90" height="720"/></g>
+    <rect width="1280" height="240" y="480" fill="#241b14"/>
+    <rect x="180" y="110" width="320" height="230" fill="#1d1812" stroke="#c8a662" stroke-width="10"/>
+    <path d="M210 300 L300 190 L360 260 L420 170 L470 300 Z" fill="#5a708a"/>
+    <circle cx="430" cy="160" r="22" fill="#d8b876"/>
+    <rect x="900" y="200" width="140" height="290" rx="10" fill="#2c241c"/>
+    <ellipse cx="970" cy="200" rx="90" ry="60" fill="#3f5a3c"/>
+    <ellipse cx="930" cy="170" rx="50" ry="40" fill="#4a6a45"/>
+    <ellipse cx="1010" cy="165" rx="55" ry="42" fill="#456040"/>
+    <ellipse cx="640" cy="560" rx="500" ry="120" fill="#1a130d"/>
+    <radialGradient id="lamp" cx=".5" cy=".3"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".25"/><stop offset="1" stop-color="transparent"/></radialGradient>
+    <rect width="1280" height="720" fill="url(#lamp)"/>
+  </svg>`,
+
+  online: `<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1280" height="720" fill="#1d2433"/>
+    <rect width="1280" height="240" y="480" fill="#141a26"/>
+    <rect x="190" y="60" width="900" height="500" rx="18" fill="#0b1322" stroke="#3b475e" stroke-width="10"/>
+    <rect x="220" y="90" width="840" height="440" rx="8" fill="#13203a"/>
+    <g fill="#1f3357"><rect x="240" y="110" width="260" height="190" rx="8"/><rect x="520" y="110" width="260" height="190" rx="8"/><rect x="800" y="110" width="240" height="190" rx="8"/><rect x="240" y="320" width="260" height="190" rx="8"/><rect x="800" y="320" width="240" height="190" rx="8"/></g>
+    <circle cx="370" cy="190" r="40" fill="#31507f"/><circle cx="650" cy="190" r="40" fill="#31507f"/><circle cx="920" cy="190" r="40" fill="#31507f"/>
+    <rect x="560" y="585" width="160" height="40" fill="#0b1322"/>
+    <rect x="460" y="620" width="360" height="16" rx="8" fill="#2a3346"/>
+    <circle cx="1150" cy="120" r="60" fill="#f3c96b" opacity=".12"/>
+  </svg>`,
+
+  procure: `<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1280" height="720" fill="#cfd4d9"/>
+    <rect width="1280" height="280" y="440" fill="#9aa1aa"/>
+    <circle cx="640" cy="130" r="52" fill="#f4f6f8" stroke="#5b636e" stroke-width="8"/>
+    <line x1="640" y1="130" x2="640" y2="96" stroke="#5b636e" stroke-width="7"/>
+    <line x1="640" y1="130" x2="666" y2="142" stroke="#5b636e" stroke-width="5"/>
+    <g fill="#7d858f"><rect x="80" y="240" width="180" height="280" rx="6"/><rect x="290" y="240" width="180" height="280" rx="6"/></g>
+    <g fill="#646c77"><rect x="100" y="265" width="140" height="50" rx="4"/><rect x="100" y="330" width="140" height="50" rx="4"/><rect x="100" y="395" width="140" height="50" rx="4"/><rect x="310" y="265" width="140" height="50" rx="4"/><rect x="310" y="330" width="140" height="50" rx="4"/><rect x="310" y="395" width="140" height="50" rx="4"/></g>
+    <g fill="#7d858f"><rect x="980" y="280" width="220" height="240" rx="8"/><rect x="1000" y="300" width="180" height="14" rx="6" fill="#aeb5bd"/><rect x="1000" y="330" width="180" height="14" rx="6" fill="#aeb5bd"/></g>
+    <path d="M0 720 L240 500 L1040 500 L1280 720 Z" fill="#e3e0d8"/>
+  </svg>`,
+};
+
+/* ============================================================
+   ゲーム状態
+============================================================ */
+const MEDDIC_DEFS = [
+  { key: "M",  name: "Metrics",           jp: "効果の定量化" },
+  { key: "E",  name: "Economic Buyer",    jp: "決裁者の特定・面会" },
+  { key: "DC", name: "Decision Criteria", jp: "選定基準の把握" },
+  { key: "DP", name: "Decision Process",  jp: "決裁プロセスの把握" },
+  { key: "I",  name: "Identify Pain",     jp: "課題の特定" },
+  { key: "C",  name: "Champion",          jp: "社内推進者の確立" },
+];
+const QUARTER_WEEKS = 13;
+let S;
+function newState() {
+  return {
+    week: 1, trust: 50, discount: 0, stage: "発掘",
+    meddic: { M: false, E: false, DC: false, DP: false, I: false, C: false },
+    flags: {}, notes: [], log: [],
+  };
+}
+
+/* 行ヘルパー: n=ナレーション, d=セリフ */
+const n = (text) => ({ sp: null, text });
+const d = (sp, face, text) => ({ sp, face, text });
+
+/* ============================================================
+   シナリオ
+============================================================ */
+const SCENES = {
+
+intro: {
+  bg: "office", cast: ["kevin"],
+  tag: () => `第${S.week}週 ― Veltrix 本社オフィス`,
+  stage: "発掘",
+  lines: () => [
+    n("4月第1週。あなたは外資系SaaSベンダー Veltrix(ヴェルトリクス)日本法人のアカウントエグゼクティブ。製造業向けデータ統合・分析基盤「Veltrix Data Cloud」を担当している。"),
+    n("四半期キックオフ直後、マネージャーの阿部に呼ばれた。"),
+    d("kevin", "normal", "「東陽精機からインバウンドリードが入った。年商800億の中堅製造業だ。情報システム部の五十嵐課長がホワイトペーパーをダウンロードしている」"),
+    d("kevin", "angry", "「今期のコミットまで、ギャップは約3,000万円。この案件、期内に立ち上げてクローズまで持っていってほしい」"),
+    n("四半期は13週。さて、初回訪問までに何をする?"),
+  ],
+  choices: [
+    {
+      label: "東陽精機のIR資料と中期経営計画を読み込み、課題仮説を立ててから訪問する",
+      result: () => [
+        n("有価証券報告書と中期経営計画を精読した。中計には『データドリブン経営への転換』『在庫回転率の改善』が明記されている。"),
+        n("課題仮説のメモを携えて、翌週のアポを取った。"),
+      ],
+      effects: () => { S.week += 1; S.flags.prep = true; S.notes.push("中計に『データドリブン経営』の記載あり"); },
+      coach: { tone: "good", note: "初回訪問前の仮説構築は鉄則。顧客の公開情報(IR・中計)は最強の武器になる。" },
+      next: "firstMeeting",
+    },
+    {
+      label: "標準デモを徹底的に磨き込んでから訪問する",
+      result: () => [n("デモ環境を整備し、シナリオを練り込んだ。製品は完璧に語れる。——ただし東陽精機固有の事情は、まだ何も知らない。")],
+      effects: () => { S.week += 1; },
+      coach: { tone: "neutral", note: "デモの品質は大事だが、顧客理解の代わりにはならない。初回は『聞く』準備の方が価値が高い。" },
+      next: "firstMeeting",
+    },
+    {
+      label: "鉄は熱いうちに打て。準備より速度、今週中にアポを入れて会いに行く",
+      result: () => [n("リード入電の翌日にアポが取れた。スピードは申し分ない。ただし手元にあるのは、会社概要の1ページだけだ。")],
+      effects: () => { S.flags.noprep = true; },
+      coach: { tone: "neutral", note: "レスポンスの速さは武器。ただし丸腰の初回訪問は質問の深さで差が出る。最低限の下調べは欲しかった。" },
+      next: "firstMeeting",
+    },
+  ],
+},
+
+firstMeeting: {
+  bg: "meeting", cast: ["sato"],
+  tag: () => `第${S.week}週 ― 東陽精機 本社会議室`,
+  stage: "発掘",
+  lines: () => [
+    n("東陽精機本社。応対してくれたのは情報システム部の五十嵐課長。物腰は柔らかいが、目は値踏みするように鋭い。"),
+    d("sato", "normal", "「正直、まだ情報収集の段階でして。……うちは生産管理、販売、在庫のデータが部門ごとにバラバラなんです」"),
+    d("sato", "worried", "「月次の経営レポートを作るのに、毎月10営業日かかっている。役員からは『数字が出てくる頃には鮮度が切れている』と言われていまして」"),
+    n("最初の30分。どう使う?"),
+  ],
+  choices: [
+    {
+      label: "ヒアリングに徹する。「月次レポートができるまでの流れを、最初から教えてください」",
+      result: () => {
+        const r = [
+          n("五十嵐課長は最初こそ慎重だったが、業務フローを書き出すうちに熱がこもってきた。"),
+          n("各部門のExcel集計、手作業の突合、締め後の修正……。『データの分断』と『経営判断の遅れ』という、痛みの構造が見えてきた。"),
+        ];
+        if (S.flags.prep) r.push(d("sato", "shock", "「……よく調べてますね。御社、うちの中計まで読み込んでるんですか。——まさに、そこなんです」"));
+        return r;
+      },
+      effects: () => {
+        S.meddic.I = true; S.trust += S.flags.prep ? 15 : 10; S.week += 1; S.stage = "商談化";
+        S.notes.push("Pain: データ分断/月次レポートに10営業日");
+      },
+      coach: { tone: "good", note: "初回商談の目的は売ることではなく、Pain(課題)の構造を特定すること。MEDDICの『I』をここで取れた。" },
+      next: "deepDive",
+    },
+    {
+      label: "「まさに弊社の得意領域です」と、磨き上げたデモを開始する",
+      result: () => [
+        n("デモ自体の反応は悪くない。だが五十嵐課長の相槌は、次第に「なるほど」「はい」だけになっていった。"),
+        d("sato", "normal", "「資料だけ頂けますか。社内で検討します」"),
+        n("……商談の主導権が、早くも閉じかけている。"),
+      ],
+      effects: () => { S.trust -= 5; S.week += 1; S.stage = "商談化"; },
+      coach: { tone: "bad", note: "課題を特定する前のデモは『機能の押し売り』に見える。顧客が話した時間より自分が話した時間が長い初回商談は、たいてい負け筋。" },
+      next: "deepDive",
+    },
+    {
+      label: "単刀直入にBANTを確認する。「ご予算と導入時期、決裁者を教えていただけますか」",
+      result: () => [
+        d("sato", "angry", "「……まだ、そういう段階ではないので」"),
+        n("その後の会話はどこか事務的になった。資格確認を急ぎすぎて、尋問のようになってしまった。"),
+      ],
+      effects: () => { S.trust -= 10; S.week += 1; S.stage = "商談化"; },
+      coach: { tone: "bad", note: "BANT/MEDDICは『聞く項目リスト』ではなく会話の中で自然に埋めるもの。信頼の残高がないうちの直球質問は拒絶される。" },
+      next: "deepDive",
+    },
+  ],
+},
+
+deepDive: {
+  bg: "meeting", cast: ["murata", "sato"],
+  tag: () => `第${S.week}週 ― 東陽精機 2回目訪問`,
+  stage: "商談化",
+  lines: () => [
+    n("2回目の打ち合わせ。五十嵐課長が製造部のDERA部長を連れてきた。現場の実力者だが、腕組みをしたまま明らかに警戒している。"),
+    d("murata", "angry", "「言っておくけどね、私はこの手の話には懐疑的なんですよ」"),
+    d("murata", "angry", "「情シスさんの『新システム』に現場が振り回されるのは、これが初めてじゃないんでね」"),
+    n("現場のキーパーソンが目の前にいる。どう動く?"),
+  ],
+  choices: [
+    {
+      label: "DERA部長の現場の苦労を聞き、課題を数字に落とす。「その作業、月に延べ何時間ですか?」",
+      result: () => [
+        n("DERA部長は最初こそ渋々だったが、具体的に聞かれると堰を切ったように話し始めた。"),
+        n("集計すると——月次レポート関連の工数は全社で延べ320時間/月。在庫データの分断による欠品・過剰在庫の損失は、年間推定2.4億円。"),
+        d("murata", "smile", "「……あんた、現場の話を聞く営業なんだな」"),
+      ],
+      effects: () => { S.meddic.M = true; S.trust += 12; S.week += 1; S.notes.push("Metrics: 工数320h/月、在庫損失 年2.4億円"); },
+      coach: { tone: "good", note: "Painを金額・時間に換算するのがMetrics。後の役員プレゼンと価格交渉の生命線になる。現場を味方にしたのも大きい。" },
+      next: "processOrg",
+    },
+    {
+      label: "製品の自動化機能をデモで見せて、DERA部長の懐疑を打ち消す",
+      result: () => [
+        n("「ここが自動化されまして……」と画面を見せるが、DERA部長は途中で腕時計に目をやった。"),
+        d("murata", "angry", "「うちの現場は、そんな綺麗なデータじゃないんだよ」"),
+        n("機能では現場の警戒は解けなかった。課題の定量化もできずに、時間切れ。"),
+      ],
+      effects: () => { S.trust -= 3; S.week += 1; },
+      coach: { tone: "bad", note: "懐疑的なステークホルダーに必要なのは機能の証明ではなく『自分の苦労を理解されている』という感覚。先に聞く、が原則。" },
+      next: "processOrg",
+    },
+    {
+      label: "話の通じる五十嵐課長と進めたい。DERA部長には深入りせず、情シス主導でまとめる",
+      result: () => [
+        n("五十嵐課長とは話が進んだが、DERA部長は途中から一言も発しなくなった。"),
+        n("会議後、廊下で彼が誰かに電話している声が聞こえた。"),
+        d("murata", "normal", "「……例の件、現場としては慎重にって言っといて」"),
+      ],
+      effects: () => { S.trust -= 8; S.week += 1; S.flags.genbaIgnored = true; },
+      coach: { tone: "bad", note: "エンタープライズ商談は多数決。沈黙した反対派は、見えない場所で案件を殺す。現場のNoは役員会まで追いかけてくる。" },
+      next: "processOrg",
+    },
+  ],
+},
+
+processOrg: {
+  bg: "office", cast: ["sato"],
+  tag: () => `第${S.week}週 ― 東陽精機 エレベーターホール`,
+  stage: "商談化",
+  lines: () => [
+    n("打ち合わせ後、五十嵐課長がエレベーターまで送ってくれた。雰囲気は悪くない。"),
+    n("商談を前に進めるなら、この案件が社内で『どう決まるのか』を知る必要がある。"),
+  ],
+  choices: [
+    {
+      label: "「仮に進めるとなった場合、御社ではどのような流れでご決裁されるのですか?」",
+      result: () => [
+        d("sato", "normal", "「情シスで技術評価をして、5,000万円を超える投資は経営会議マターです」"),
+        d("sato", "worried", "「実質的な決裁者は、経営企画担当の代々原常務。ただ……常務は外資のクラウドには、かなり慎重派ですよ」"),
+        n("決裁ルートと決裁者(Economic Buyer)、そして最大の関門が見えた。"),
+      ],
+      effects: () => {
+        S.meddic.DP = true; S.meddic.E = true; S.trust += 8; S.week += 1; S.stage = "提案";
+        S.notes.push("EB: 代々原常務(経営企画)。5,000万超は経営会議");
+        S.notes.push("DP: 情シス技術評価 → 経営会議");
+      },
+      coach: { tone: "good", note: "『誰が・いつ・どう決めるか』を知らずに期日コミットはできない。DPとEBを同時に取れた、教科書的な一手。" },
+      next: "champion",
+    },
+    {
+      label: "金額の話だけ先に。「ちなみにご予算感は、おいくらぐらいで?」",
+      result: () => [
+        d("sato", "normal", "「予算は……まだ枠があるわけではないです。来期予算に乗せるかどうか、ですね」"),
+        n("金額の温度感は分かったが、誰がどう決めるのかは聞きそびれた。"),
+      ],
+      effects: () => { S.trust += 2; S.week += 1; S.stage = "提案"; },
+      coach: { tone: "neutral", note: "予算の確認自体は正しい。ただし決裁プロセスと決裁者を知らないままだと、終盤に必ず『見えない壁』に当たる。" },
+      next: "champion",
+    },
+    {
+      label: "ヒアリングは十分。すぐ戻って提案書を作成し、メールで送付する",
+      result: () => [
+        n("渾身の提案書を3日で仕上げてメールした。返信は1週間後——"),
+        d("sato", "normal", "「拝受しました。社内で確認します」"),
+        n("の、一行。提案書は今、誰の手元で、どう読まれているのか。あなたには知る術がない。"),
+      ],
+      effects: () => { S.week += 2; S.stage = "提案"; },
+      coach: { tone: "bad", note: "提案書を『送る』のは提案ではない。誰に・どの場で・誰の口から説明されるかを設計しないドキュメントは、社内の机の上で死ぬ。" },
+      next: "champion",
+    },
+  ],
+},
+
+champion: {
+  bg: "online", cast: ["sato"],
+  tag: () => `第${S.week}週 ― オンラインミーティング`,
+  stage: "提案",
+  lines: () => [
+    n("五十嵐課長から、30分のWeb会議の依頼が来た。画面越しの彼は、少し声をひそめて切り出した。"),
+    d("sato", "normal", "「実は……このデータ基盤の刷新、私自身が来期のミッションとして役員に提案したいと思っているんです」"),
+    d("sato", "worried", "「ただ、代々原常務は外資クラウドに慎重で。私も、あの場でうまく説明しきれるか自信がなくて」"),
+    n("彼はこの案件に、自分のキャリアを賭けようとしている。あなたはどう支える?"),
+  ],
+  choices: [
+    {
+      label: "「一緒に社内提案を作りましょう」。常務向け資料と想定問答集を二人三脚で準備する",
+      result: () => [
+        n("2回の作業会を重ね、常務の懸念——セキュリティ、外資依存、コスト——に先回りした想定問答集まで作り込んだ。"),
+        d("sato", "smile", "「ここまで付き合ってくれるベンダーは初めてです。常務への説明の場、私がセッティングします」"),
+        n("彼はもう『窓口』ではない。社内であなたの代わりに戦ってくれる——Championだ。"),
+      ],
+      effects: () => { S.meddic.C = true; S.trust += 12; S.week += 1; S.notes.push("Champion: 五十嵐課長(自身のミッションとして推進)"); },
+      coach: { tone: "good", note: "Championは『仲が良い人』ではなく『社内で売ってくれる人』。彼が社内で勝つための武器を渡すのがAEの仕事。" },
+      next: "techEval",
+    },
+    {
+      label: "「ご心配なく、常務には弊社から直接ご説明しますよ」と巻き取る",
+      result: () => [
+        n("善意のつもりだったが、画面の向こうで五十嵐課長の表情がわずかに固まった。"),
+        d("sato", "worried", "「……いえ、社内のことなので、まずはこちらで」"),
+        n("彼が立てようとしていた手柄の旗を、あなたが横から掴んでしまった。"),
+      ],
+      effects: () => { S.trust -= 6; S.week += 1; },
+      coach: { tone: "bad", note: "Champion候補の頭越しは最悪手。彼の社内政治上の勝利をデザインしてあげることが、結果的に自社の勝利になる。" },
+      next: "techEval",
+    },
+    {
+      label: "まずは関係構築。会食に誘って腹を割って話す",
+      result: () => [
+        n("会食は盛り上がり、五十嵐課長の人柄や社内の空気感はよく分かった。関係は確かに深まった。"),
+        n("ただ——常務攻略の具体的な作戦は白紙のまま、夜が更けた。"),
+      ],
+      effects: () => { S.trust += 5; S.week += 1; },
+      coach: { tone: "neutral", note: "関係構築は無駄ではない。ただしChampionに必要なのは好意ではなく『社内で勝てる武器』。次の一手が必要だった。" },
+      next: "techEval",
+    },
+  ],
+},
+
+techEval: {
+  bg: "meeting", cast: ["sato"],
+  tag: () => `第${S.week}週 ― 東陽精機 技術評価ミーティング`,
+  stage: "提案",
+  lines: () => [
+    n("技術評価のフェーズに入った。会議室に入ると、五十嵐課長の表情がいつもより硬い。"),
+    d("sato", "normal", "「お伝えしておくと——NSG、日本システム技研さんにも提案を依頼しました」"),
+    d("sato", "normal", "「先方は『国産・オンプレ・御社の既存ERPと完全互換』を打ち出しています」"),
+    d("sato", "worried", "「それでお聞きしたいのですが……うちのERPはかなりカスタマイズされています。Veltrixとの連携は、本当に大丈夫ですか?」"),
+    n("競合登場。そして技術的に最も重い質問が直球で来た。実際のところ、標準コネクタでカバーできるのは経験上8割。残りは現物を見ないと分からない。"),
+  ],
+  choices: [
+    {
+      label: "正直に伝える。「標準連携で8割。残り2割は、2週間のFit&Gapアセスメントで白黒つけさせてください」",
+      result: () => [
+        n("一瞬の、沈黙。"),
+        d("sato", "shock", "「……『全部できます』と言わないベンダーは、御社が初めてです」"),
+        d("sato", "smile", "「正直、信用できます。Fit&Gap、社内で調整しましょう」"),
+        n("アセスメントの過程で、先方の選定基準も明文化された。——①既存ERP連携の実現性 ②セキュリティ・ガバナンス ③5年TCO。"),
+      ],
+      effects: () => {
+        S.meddic.DC = true; S.trust += 12; S.week += 2;
+        S.notes.push("競合: NSG(国産・オンプレ・互換性訴求)");
+        S.notes.push("DC: ①ERP連携 ②セキュリティ ③5年TCO");
+      },
+      coach: { tone: "good", note: "技術的な誠実さは短期的に不利に見えて、エンタープライズでは最強の差別化。選定基準(DC)を握れたのも大きい。" },
+      next: "execMeeting",
+    },
+    {
+      label: "勢いで押し切る。「ご安心ください、連携は全く問題ありません。すべて対応できます」",
+      result: () => [
+        d("sato", "smile", "「それなら安心です。その前提で、社内説明を進めますね」"),
+        n("商談は加速した。——ただし、あなたはまだ先方のERPのカスタマイズ内容を、一度も見ていない。"),
+      ],
+      effects: () => { S.trust += 5; S.week += 1; S.flags.overpromise = true; S.notes.push("競合: NSG(国産・オンプレ・互換性訴求)"); },
+      coach: { tone: "bad", note: "確認していないことを断言した。エンタープライズ商談で過剰コミットは時限爆弾になる。爆発するのはたいてい一番痛いタイミング。" },
+      next: "execMeeting",
+    },
+    {
+      label: "競合を叩く。「NSGさんのアーキテクチャは10年前のものです。オンプレは時代に逆行していますよ」",
+      result: () => [
+        n("言い終わる前に、空気が冷えたのが分かった。"),
+        d("sato", "angry", "「……NSGさんには、うちの基幹系で15年お世話になっているんですよ」"),
+        n("肝心のERP連携の質問には、結局正面から答えないまま会議が終わった。"),
+      ],
+      effects: () => { S.trust -= 10; S.week += 1; S.notes.push("競合: NSG(既存ベンダー、15年の取引)"); },
+      coach: { tone: "bad", note: "競合への直接攻撃は、競合を選定候補に入れた顧客自身への攻撃に聞こえる。語るべきは他社の欠点ではなく自社の価値。" },
+      next: "execMeeting",
+    },
+  ],
+},
+
+execMeeting: {
+  bg: () => S.meddic.E ? "exec" : "office",
+  cast: () => S.meddic.E ? ["takahashi"] : ["kevin"],
+  tag: () => `第${S.week}週 ― ${S.meddic.E ? "東陽精機 役員応接室" : "Veltrix オフィス"}`,
+  stage: "交渉",
+  lines: () => {
+    if (!S.meddic.E) return [
+      n("提案は五十嵐課長経由で上層部に上がっているはずだ。だが——誰が決裁者なのか、あなたは最後まで掴めていない。"),
+      n("面会の打診も、「社内で説明しておきます」と返されるだけ。"),
+      d("kevin", "angry", "「Economic Buyerには会えたのか? 会えていないなら、そのディールはフォーキャストから外すぞ」"),
+      n("数週間後、五十嵐課長から連絡が来た。『経営会議で議題には上がったのですが……役員から質問が出て、私では答えきれませんでした。継続審議になっています』"),
+    ];
+    return [
+      n(S.meddic.C ? "五十嵐課長がセッティングしてくれた、代々原常務との面会。" : "粘り強い調整の末にようやく実現した、代々原常務との面会。"),
+      n("応接室に現れた常務は、名刺交換もそこそこに腰を下ろした。"),
+      d("takahashi", "angry", "「15分だけです」"),
+      d("takahashi", "normal", "「——で、御社のシステムを入れると、うちの経営の何が変わるんですか。横文字の機能の話なら結構ですよ」"),
+      n("決裁者との15分。何から話す?"),
+    ];
+  },
+  choices: () => {
+    if (!S.meddic.E) return [
+      {
+        label: "五十嵐課長に頭を下げ、役員への同席説明の機会をもらえるよう動く",
+        result: () => [n("五十嵐課長が動いてくれて、次回経営会議での補足説明の機会を何とか得た。ただし——すでに数週間を失っている。")],
+        effects: () => { S.week += 3; S.flags.ebLate = true; },
+        coach: { tone: "neutral", note: "リカバリーとしては正しい。ただ、決裁者特定が遅れた代償は『時間』で払うことになった。" },
+        next: "procurement",
+      },
+      {
+        label: "書面で詳細なFAQ資料を送り、間接的に役員の疑問に答える",
+        result: () => [n("資料は丁寧だと五十嵐課長には好評だった。だが役員の疑問が何だったのかをあなたは正確には知らないまま、資料は会議体の中をゆっくり漂流している。")],
+        effects: () => { S.week += 3; },
+        coach: { tone: "bad", note: "会ったことのない決裁者の疑問に、書面で答えることはできない。Economic Buyerとの面会に代替手段はない。" },
+        next: "procurement",
+      },
+    ];
+    return [
+      {
+        label: "経営の言葉で語る。「本日、システムの話はしません。中計の『データドリブン経営』を24カ月でどう実現するかの話をします」",
+        result: () => S.meddic.M ? [
+          n("あなたは、数字から入った。"),
+          n("「現状、経営数値の把握に10営業日。月次レポート工数は全社で320時間。在庫の分断による損失は年間推定2.4億円——これはDERA部長はじめ、現場の方々と一緒に算出した数字です」"),
+          d("takahashi", "shock", "「…………」"),
+          d("takahashi", "smile", "「その数字、今度の経営会議で使わせてもらっていいですか」"),
+          n("15分の予定が、45分になった。"),
+        ] : [
+          n("方向性には頷いてもらえた。だが「経営が変わる」と言った瞬間——"),
+          d("takahashi", "normal", "「変わる、とは。——いくら、変わるんですか」"),
+          n("……定量化した数字を、あなたは持っていない。「そこは導入後のアセスメントで」と答えるのが精一杯だった。"),
+        ],
+        effects: () => {
+          S.flags.ebMet = true; S.week += 1;
+          if (S.meddic.M) { S.trust += 15; S.notes.push("代々原常務、ROI試算に強い関心"); } else { S.trust += 4; }
+        },
+        coach: () => S.meddic.M
+          ? { tone: "good", note: "Economic Buyerには製品ではなくビジネス成果を語る。序盤で取ったMetricsがここで効いた。完璧な展開。" }
+          : { tone: "neutral", note: "アプローチは正しかったが、裏付けるMetricsがなかった。役員の『いくら?』に答えられない提案は弱い。" },
+        next: "procurement",
+      },
+      {
+        label: "技術的優位性で勝負。アーキテクチャとセキュリティ認証の説明を丁寧に行う",
+        result: () => [
+          n("5分でスマホに目を落とし、10分で常務は腕時計を見た。"),
+          d("takahashi", "angry", "「……その辺は情シスさんと詰めてください。私が聞きたいのは、そういう話ではないんですよ」"),
+          n("15分きっかりで、面会は終わった。"),
+        ],
+        effects: () => { S.flags.ebMet = true; S.trust -= 5; S.week += 1; },
+        coach: { tone: "bad", note: "役員が15分くれたのは技術仕様を聞くためではない。聞き手のレイヤーに合わせて語る内容を変えるのはAEの基本。" },
+        next: "procurement",
+      },
+      {
+        label: "決断を引き出すため、特別条件を提示する。「今期中にご決断頂ければ、特別価格をご用意します」",
+        result: () => [
+          n("常務の眉が、わずかに動いた。"),
+          d("takahashi", "angry", "「……価値の説明より先に、値引きの話をするんですね。御社は」"),
+          n("空気が一段冷えた。値引きカードを、最も高く売れるはずの場で最も安く切ってしまった。"),
+        ],
+        effects: () => { S.flags.ebMet = true; S.trust -= 10; S.discount = 10; S.week += 1; },
+        coach: { tone: "bad", note: "決裁者への初手値引きは『価値に自信がない』というメッセージ。しかも交渉前に自らアンカーを下げた。" },
+        next: "procurement",
+      },
+    ];
+  },
+},
+
+pocCrisis: {
+  bg: "meeting", castTint: "rgba(180,30,30,.14)", cast: ["sato"],
+  tag: () => `第${S.week}週 ― 緊急ミーティング`,
+  stage: "交渉",
+  lines: () => [
+    n("技術検証の過程で、恐れていた連絡が来た。先方ERPのカスタマイズ部分とVeltrixの連携に——重大な問題が見つかったのだ。"),
+    n("緊急ミーティング。五十嵐課長の顔は、青ざめていた。"),
+    d("sato", "shock", "「『すべて連携できます』と、おっしゃいましたよね」"),
+    d("sato", "angry", "「私は、その前提で常務にも現場にも説明してしまったんです。……これ、どうするんですか」"),
+    n("あなたが切った空手形が、Championの社内での信用ごと燃やそうとしている。"),
+  ],
+  choices: [
+    {
+      label: "言い訳をせず謝罪し、本国のSEリードを巻き込んで48時間で回避策3案を提示する",
+      result: () => [
+        n("その夜、USのソリューションアーキテクトを電話で叩き起こした。"),
+        n("48時間後——回避策3案(追加開発/中間DB/段階移行)を、工数・費用付きで提示した。"),
+        d("sato", "worried", "「……火を着けたのも御社ですが、消し方は誠実でした」"),
+        n("信頼は傷ついたが、案件はまだ生きている。"),
+      ],
+      effects: () => { S.trust -= 8; S.week += 2; S.notes.push("連携課題 → 回避策3案で収拾"); },
+      coach: { tone: "neutral", note: "事故後の最善手。スピード・透明性・選択肢の3点セットはリカバリーの定石。ただし、そもそも事故を起こさないのが一番安い。" },
+      next: "procurement",
+    },
+    {
+      label: "「御社のERPのカスタマイズが特殊すぎるのが原因です」と環境側の問題にする",
+      result: () => [
+        n("言った瞬間、五十嵐課長の目から温度が消えた。"),
+        d("sato", "angry", "「……分かりました。NSGさんは現物を確認した上で見積もると言っています。今後の窓口は、購買部にお願いします」"),
+        n("Championだった男は、この瞬間に——ただの調達窓口になった。"),
+      ],
+      effects: () => { S.trust -= 30; S.week += 1; S.meddic.C = false; S.flags.blamed = true; },
+      coach: { tone: "bad", note: "自分の過剰コミットを顧客のせいにした時点で商談は実質終了。Championの社内的な恥は、絶対に放置してはいけない。" },
+      next: "procurement",
+    },
+    {
+      label: "技術問題の議論は避け、「その分、価格で誠意を見せます」と大幅値引きでカバーする",
+      result: () => [
+        d("sato", "worried", "「値引きの話では、なくてですね……」"),
+        n("問題は金額ではなく、動くかどうかなのだ。値引き分だけ案件の利幅が削れ、技術リスクは未解決のまま残った。"),
+      ],
+      effects: () => { S.trust -= 12; S.discount += 10; S.week += 1; },
+      coach: { tone: "bad", note: "技術リスクは値引きでは消えない。論点のすり替えは顧客に必ず見抜かれる。" },
+      next: "procurement",
+    },
+  ],
+},
+
+procurement: {
+  bg: "procure", cast: ["nishino"],
+  tag: () => `第${S.week}週 ― 東陽精機 購買部`,
+  stage: "交渉",
+  lines: () => [
+    n("経営会議を前に、購買部の高牟礼氏から「条件面の整理をしたい」と呼び出された。"),
+    d("nishino", "normal", "「率直に申し上げます。NSGさんの提案は、御社より2割安い」"),
+    d("nishino", "normal", "「同水準まで調整いただければ、役員会への上申はスムーズです」"),
+    d("nishino", "smile", "「……ベンダーさんは皆さん、期末はお忙しいんでしょう?」"),
+    n("期末を、見透かされている。さあ、どうする?"),
+  ],
+  choices: [
+    {
+      label: "交換条件を出す。「3年契約+今四半期内の発注を頂けるなら10%。これが弊社の最終条件です」",
+      result: () => [
+        n("高牟礼氏はしばらく無言で電卓を叩いた。"),
+        d("nishino", "normal", "「……3年縛り、ですか」"),
+        d("nishino", "smile", "「いいでしょう。その条件で上に諮ります」"),
+        n("値引き幅を抑えつつ、先方の都合ではなくこちらの期限で商談が動き始めた。"),
+      ],
+      effects: () => { S.discount = Math.max(S.discount, 10); S.trust += 5; S.week += 1; S.flags.closeInQuarter = true; S.notes.push("条件合意: 3年契約+期内発注で10%"); },
+      coach: { tone: "good", note: "値引きは『あげる』ものではなく『交換する』もの。複数年契約と発注期限という対価を取った、模範的なネゴシエーション。" },
+      next: "ending",
+    },
+    {
+      label: "期末でもあるし、要求どおり20%値引きを受け入れて確実に決める",
+      result: () => [
+        d("nishino", "smile", "「20%、承知しました」"),
+        n("高牟礼氏は満足げに頷いた——そして、言った。"),
+        d("nishino", "normal", "「では、この金額を起点に、役員会向けの最終調整をしましょう」"),
+        n("即答の値引きは、さらなる値引き余地の証明として受け取られた。利幅は大きく削れ、感謝はされていない。"),
+      ],
+      effects: () => { S.discount = Math.max(S.discount, 20); S.week += 1; S.flags.closeInQuarter = true; },
+      coach: { tone: "bad", note: "抵抗なき値引きは『最初の見積りは何だったのか』という不信を生み、次の値引き要求を呼ぶ。対価なき譲歩はしない。" },
+      next: "ending",
+    },
+    {
+      label: "「弊社とNSGでは提供価値が違います」と値引きを一切拒否する",
+      result: () => (S.trust >= 70 && S.meddic.C) ? [
+        n("強気の回答に高牟礼氏は渋い顔をしたが——数日後、五十嵐課長から連絡が来た。"),
+        n("『常務が「価格より実現性で選ぶ」と言ってくれました。現場のDERA部長も、御社推しです』"),
+        n("価値が、価格を守り切った。"),
+      ] : [
+        n("高牟礼氏は表情を変えずに、ファイルを閉じた。"),
+        d("nishino", "normal", "「では、社内の比較表はこの条件のまま役員会に出します」"),
+        n("価値で押し切れるだけの社内の援軍が、今のあなたには足りない。交渉は膠着し、貴重な数週間が溶けた。"),
+      ],
+      effects: () => {
+        S.week += 1;
+        if (S.trust >= 70 && S.meddic.C) { S.discount = Math.max(S.discount, 5); S.trust += 3; S.flags.closeInQuarter = true; }
+        else { S.flags.stall = true; S.week += 2; }
+      },
+      coach: () => (S.trust >= 70 && S.meddic.C)
+        ? { tone: "good", note: "値引き拒否はChampionと信頼という後ろ盾があって初めて成立する。今回は土台があったから通った。" }
+        : { tone: "bad", note: "強気な価格防衛は、社内に味方がいる時だけ使える技。後ろ盾なしのゼロ回答は商談を凍らせる。" },
+      next: "ending",
+    },
+  ],
+},
+
+};
+
+/* ============================================================
+   エンディング判定 (クラシック版と同ロジック)
+============================================================ */
+function computeEnding() {
+  const m = S.meddic;
+  const meddicCount = Object.values(m).filter(Boolean).length;
+  let power = S.trust;
+  if (m.C) power += 15;
+  if (S.flags.ebMet) power += 15;
+  if (m.DC) power += 8;
+  if (m.M) power += 8;
+  if (S.flags.genbaIgnored) power -= 12;
+  if (S.flags.blamed) power -= 25;
+  const inQuarter = S.week <= QUARTER_WEEKS && S.flags.closeInQuarter && !S.flags.stall;
+
+  let type, title, story;
+  if (S.trust < 30 || S.flags.blamed) {
+    type = "loss"; title = "失注 ― 商談主導権の喪失";
+    story = `<p>役員会の数日後、五十嵐課長から短いメールが届いた。<b>「諸事情を総合的に勘案し、今回はNSG社の提案を採用することになりました」</b>。電話をかけたが、もう以前のように繋がることはなかった。</p><p>阿部との1on1。「何が起きたのか、Loss Reviewで一緒に振り返ろう」。パイプラインに空いた3,000万円の穴が、静かにあなたを見上げている。</p>`;
+  } else if (power >= 80) {
+    if (inQuarter) {
+      type = "win"; title = "受注 ― 期内クローズ達成!";
+      story = `<p>四半期最終週の木曜、五十嵐課長から着信。<b>「経営会議、承認されました。発注書、今日付で出します」</b>。受話器を置いた瞬間、フロアの同僚たちがゴングを鳴らした。</p><p>代々原常務はあなたのROI資料をほぼそのまま経営会議で使い、DERA部長は「現場の話を聞いた唯一のベンダー」と援護したという。値引き${S.discount}%、3年契約。<b>クォータ達成。</b>阿部のSlackには🎉が並んだ。——来期のクォータは、たぶん上がる。</p>`;
+    } else {
+      type = "slip"; title = "受注見込み ― ただし期ズレ(Slip)";
+      story = `<p>商談自体は勝ち筋に乗った。だが決裁が四半期をまたぎ、<b>発注は来期にずれ込んだ</b>。阿部は「Good dealだ。ただし——」と言ってフォーキャスト画面を指した。<b>「今期のコミットには入らない」</b>。</p><p>案件の中身は良い。失ったのは、時間だけだ。そして外資の営業にとって、時間はクォータと同義である。</p>`;
+    }
+  } else if (power >= 60) {
+    type = "slip"; title = "継続審議 ― クローズに至らず";
+    story = `<p>経営会議の結論は<b>「継続検討」</b>。悪い感触ではないが、決定打に欠けた。${!S.flags.ebMet ? "決裁者である代々原常務と直接話せていれば、結果は違ったかもしれない。" : ""}${!m.M ? "投資対効果を数字で示せていれば、役員会の景色は違ったはずだ。" : ""}${!m.C ? "社内であなたの代わりに戦ってくれる人が、最後までいなかった。" : ""}</p><p>案件はまだ生きている。だが今期の数字には間に合わなかった。フォーキャスト会議でのあなたのステータスは「Slipped」。来期、この続きを取りに行く。</p>`;
+  } else {
+    type = "loss"; title = "失注 ― 競合NSGに敗北";
+    story = `<p>役員会はNSGを選んだ。決め手は「既存ベンダーとしての安心感」と「現場・役員への丁寧な根回し」だったと、後に五十嵐課長が教えてくれた。<b>商談は会議室の中ではなく、あなたの見えない場所で決まっていた</b>。</p><p>Loss Reviewで阿部が言った。「製品で負けたんじゃない。商談の進め方で負けたんだ。——次は、どう戦う?」</p>`;
+  }
+
+  const meddicScore = meddicCount * 10;
+  const trustScore = Math.round(Math.max(0, Math.min(S.trust, 100)) / 5);
+  const marginScore = Math.max(0, 10 - Math.round(S.discount / 2));
+  const timeScore = (type === "win" && inQuarter) ? 10 : (type === "slip" ? 4 : 0);
+  const total = meddicScore + trustScore + marginScore + timeScore;
+
+  let rank;
+  if (total >= 90) rank = "S ― President's Club 確実。グローバル表彰の常連クラス。";
+  else if (total >= 75) rank = "A ― トップパフォーマー。クォータ達成が見える実力。";
+  else if (total >= 55) rank = "B ― 中堅AE。型は身についてきた。あとは実行の精度。";
+  else if (total >= 35) rank = "C ― 要PIP回避。マネージャーとの1on1が増えそうだ。";
+  else rank = "D ― セールスイネーブルメント研修への再入校を推奨。";
+
+  return { type, title, story, total, rank, breakdown: [
+    ["MEDDIC 充足(" + meddicCount + "/6)", meddicScore + " / 60"],
+    ["顧客との信頼度", trustScore + " / 20"],
+    ["利幅の防衛(値引き" + S.discount + "%)", marginScore + " / 10"],
+    ["期内クローズ", timeScore + " / 10"],
+  ]};
+}
+
+/* ============================================================
+   エンジン
+============================================================ */
+const $ = (id) => document.getElementById(id);
+const val = (v) => typeof v === "function" ? v() : v;
+
+let cur = { id: null, lines: [], idx: 0, phase: "title", pendingNext: null, choiceList: [] };
+let typing = false, typeTimer = null, fullText = "";
+
+/* 実写ポートレート設定 (顔がフレームに収まるよう size=ズーム / pos=表示位置を1枚ずつ調整) */
+const PHOTO = {
+  kevin:     { src: "chars/cut/abe.png",      size: "80%",  pos: "50% 0%"  },
+  sato:      { src: "chars/cut/igarashi.png", size: "130%", pos: "50% 5%"  },
+  murata:    { src: "chars/cut/dera.png",     size: "120%", pos: "50% 8%"  },
+  takahashi: { src: "chars/cut/yoyohara.png", size: "116%", pos: "50% 8%"  },
+  nishino:   { src: "chars/cut/takamure.png", size: "114%", pos: "50% 6%"  },
+};
+
+function setBg(key, tint) {
+  $("bg").className = "bg scene-" + (key || "office");
+  $("tint").style.background = tint || "rgba(0,0,0,0)";
+}
+
+function setCast(cast) {
+  const pos = cast.length >= 2 ? ["pos-l", "pos-r"] : [""];
+  $("sprites").innerHTML = cast.map((id, i) => {
+    const p = PHOTO[id] || {};
+    return `<div class="sprite ${pos[i] || ""} half" id="sp-${id}"
+      style="background-image:url('${p.src}');background-size:${p.size};background-position:${p.pos}"></div>`;
+  }).join("");
+}
+
+function focusSpeaker(sp, face) {
+  document.querySelectorAll(".sprite").forEach(el => {
+    const id = el.id.slice(3);
+    if (sp && id === sp) {
+      el.classList.remove("dim", "half"); el.classList.add("active");
+    } else {
+      el.classList.remove("active");
+      el.classList.toggle("dim", !!sp);
+      el.classList.toggle("half", !sp);
+    }
+  });
+}
+
+function typeLine(text) {
+  fullText = text;
+  const el = $("msgText");
+  $("cursor").style.opacity = 0;
+  if (typeTimer) clearInterval(typeTimer);
+  if (window.__FAST) { el.textContent = text; typing = false; $("cursor").style.opacity = 1; return; }
+  typing = true; el.textContent = "";
+  let i = 0;
+  typeTimer = setInterval(() => {
+    i += 1;
+    el.textContent = text.slice(0, i);
+    if (i >= text.length) { clearInterval(typeTimer); typing = false; $("cursor").style.opacity = 1; }
+  }, 24);
+}
+
+function showLine() {
+  const line = cur.lines[cur.idx];
+  const np = $("namePlate");
+  if (line.sp) {
+    np.style.display = "block";
+    np.textContent = CHARS[line.sp].name;
+    focusSpeaker(line.sp, line.face || "normal");
+  } else {
+    np.style.display = "none";
+    focusSpeaker(null);
+  }
+  typeLine(line.text);
+}
+
+let choiceFocus = -1, picking = false, choicesReady = false;
+
+function showChoices() {
+  cur.phase = "choosing";
+  $("cursor").style.opacity = 0;
+  const box = $("choices");
+  box.innerHTML = cur.choiceList.map((c, i) =>
+    `<button class="choice" data-i="${i}"><span class="num">${String(i + 1).padStart(2, "0")}</span><span class="txt">${c.label}</span></button>`).join("");
+  box.classList.add("show");
+  box.querySelectorAll(".choice").forEach(btn => {
+    const i = +btn.dataset.i;
+    btn.addEventListener("click", (e) => { e.stopPropagation(); pickChoice(i); });
+    btn.addEventListener("mousemove", () => { if (!picking) setChoiceFocus(i); });
+  });
+  choiceFocus = -1; picking = false;
+  /* 連打で直前のテキスト送りが選択に化けないよう、表示直後だけ入力を無視 */
+  choicesReady = false;
+  setTimeout(() => { choicesReady = true; }, 240);
+}
+
+function setChoiceFocus(i) {
+  const els = [...document.querySelectorAll("#choices .choice")];
+  if (!els.length) return;
+  if (i < 0) i = els.length - 1; else if (i >= els.length) i = 0;
+  choiceFocus = i;
+  els.forEach((el, idx) => el.classList.toggle("focus", idx === i));
+}
+
+function moveChoiceFocus(d) {
+  const n = document.querySelectorAll("#choices .choice").length;
+  if (!n) return;
+  setChoiceFocus(choiceFocus < 0 ? (d > 0 ? 0 : n - 1) : choiceFocus + d);
+}
+
+function pushDelta(text, cls) {
+  const el = document.createElement("div");
+  el.className = "chip " + cls;
+  el.textContent = text;
+  $("deltas").appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function pickChoice(idx) {
+  if (picking || !choicesReady || cur.phase !== "choosing") return;
+  picking = true;
+  AudioFX.select();
+  /* 決定演出: 選んだカードを一瞬光らせ、他をフェードしてから確定 */
+  const els = [...document.querySelectorAll("#choices .choice")];
+  els.forEach((el, i) => { el.classList.toggle("picked", i === idx); el.classList.toggle("dimmed", i !== idx); });
+  setTimeout(() => commitChoice(idx), 150);
+}
+
+function bumpHud(id) {
+  const el = $(id); if (!el) return;
+  el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+}
+
+function commitChoice(idx) {
+  const c = cur.choiceList[idx];
+  $("choices").classList.remove("show");
+
+  const before = {
+    trust: S.trust, week: S.week, discount: S.discount,
+    meddic: Object.entries(S.meddic).filter(([, v]) => v).map(([k]) => k),
+  };
+  if (c.effects) c.effects();
+  S.trust = Math.max(0, Math.min(100, S.trust));
+
+  const coach = val(c.coach);
+  S.log.push({ scene: val(SCENES[cur.id].tag), choice: c.label, tone: coach.tone, note: coach.note });
+
+  const dt = S.trust - before.trust;
+  if (dt > 0) { pushDelta(`信頼度 +${dt}`, "up"); AudioFX.good(); bumpHud("hi-trust"); }
+  if (dt < 0) { pushDelta(`信頼度 ${dt}`, "down"); AudioFX.bad(); bumpHud("hi-trust"); }
+  const dw = S.week - before.week;
+  if (dw) { pushDelta(`⏱ ${dw}週 経過`, "flat"); bumpHud("hi-week"); }
+  const dd = S.discount - before.discount;
+  if (dd > 0) { pushDelta(`値引き +${dd}%`, "down"); bumpHud("hi-disc"); }
+  Object.entries(S.meddic).forEach(([k, v]) => {
+    const had = before.meddic.includes(k);
+    const def = MEDDIC_DEFS.find(x => x.key === k);
+    if (v && !had) { pushDelta(`MEDDIC獲得: ${def.name} ✓`, "meddic"); bumpHud("hi-meddic"); }
+    if (!v && had) { pushDelta(`MEDDIC喪失: ${def.name} ✗`, "down"); bumpHud("hi-meddic"); }
+  });
+
+  renderHud();
+  cur.phase = "result";
+  cur.pendingNext = c.next;
+  cur.lines = val(c.result);
+  cur.idx = 0;
+  showLine();
+}
+
+function goNext() {
+  let next = typeof cur.pendingNext === "function" ? cur.pendingNext() : cur.pendingNext;
+  if (next === "procurement" && S.flags.overpromise && !S.flags.crisisDone) {
+    S.flags.crisisDone = true;
+    next = "pocCrisis";
+  }
+  if (next === "ending") { showEnding(); return; }
+  transition(() => renderScene(next));
+}
+
+function transition(fn) {
+  if (window.__FAST) { fn(); return; }
+  const f = $("fade");
+  f.classList.add("on");
+  setTimeout(() => { fn(); setTimeout(() => f.classList.remove("on"), 80); }, 320);
+}
+
+function renderScene(id) {
+  cur.id = id;
+  const sc = SCENES[id];
+  if (sc.stage) S.stage = sc.stage;
+  setBg(val(sc.bg), sc.castTint);
+  setCast(val(sc.cast));
+  $("sceneTag").textContent = val(sc.tag);
+  renderHud();
+  cur.lines = val(sc.lines);
+  cur.choiceList = val(sc.choices);
+  cur.idx = 0;
+  cur.phase = "scene";
+  /* メッセージウィンドウを軽くスライドアップ */
+  const mb = $("msgbox");
+  mb.classList.remove("anim"); void mb.offsetWidth; mb.classList.add("anim");
+  showLine();
+}
+
+function onAdvance() {
+  if (cur.phase === "title" || cur.phase === "choosing" || cur.phase === "ended") return;
+  if (typing) {
+    clearInterval(typeTimer); typing = false;
+    $("msgText").textContent = fullText; $("cursor").style.opacity = 1;
+    return;
+  }
+  AudioFX.blip();
+  cur.idx += 1;
+  if (cur.idx < cur.lines.length) { showLine(); return; }
+  if (cur.phase === "scene") showChoices();
+  else if (cur.phase === "result") goNext();
+}
+
+/* ---------- HUD / drawer ---------- */
+function renderHud() {
+  const left = QUARTER_WEEKS - S.week;
+  const wk = $("hudWeek");
+  wk.textContent = `第${Math.min(S.week, QUARTER_WEEKS)}週/${QUARTER_WEEKS}週`;
+  wk.className = left <= 3 ? "hud-danger" : "";
+  $("weekFill").style.width = Math.min(100, S.week / QUARTER_WEEKS * 100) + "%";
+  $("hudTrust").textContent = S.trust;
+  $("trustFill").style.width = S.trust + "%";
+  $("hudDisc").textContent = S.discount + "%";
+  $("hudMeddic").textContent = Object.values(S.meddic).filter(Boolean).length + "/6";
+  renderDrawer();
+}
+
+function renderDrawer() {
+  $("drawer").innerHTML = `
+    <div class="drawer-head">
+      <span class="title">案件ファイル</span>
+      <button class="drawer-close" onclick="toggleDrawer(false)" aria-label="閉じる">✕</button>
+    </div>
+    <h3>案件ステータス</h3>
+    <div class="d-row"><span>四半期</span><b>第${Math.min(S.week, QUARTER_WEEKS)}週 / ${QUARTER_WEEKS}週</b></div>
+    <div class="d-row"><span>信頼度</span><b>${S.trust} / 100</b></div>
+    <div class="d-row"><span>商談ステージ</span><b>${S.stage}</b></div>
+    <div class="d-row"><span>提示値引き</span><b>${S.discount} %</b></div>
+    <h3>MEDDIC チェック</h3>
+    ${MEDDIC_DEFS.map(m => `
+      <div class="meddic-item ${S.meddic[m.key] ? "on" : ""}">
+        <span class="dot"></span>
+        <span><b>${m.name}</b><small>${m.jp}</small></span>
+      </div>`).join("")}
+    <h3>案件メモ</h3>
+    <div id="drawerNotes">${S.notes.length ? S.notes.map(x => "・" + x).join("<br>") : "―"}</div>
+    <h3>操作</h3>
+    <div id="drawerNotes">クリック / スペース / Enter で読み進め。<br>選択肢で商談の運命が決まる。</div>`;
+}
+
+/* ---------- ending ---------- */
+function showEnding() {
+  cur.phase = "ended";
+  const e = computeEnding();
+  if (e.type === "win") { setBg("office", "rgba(255,170,60,.18)"); AudioFX.fanfare(); }
+  else if (e.type === "slip") { setBg("office", "rgba(60,80,140,.3)"); AudioFX.bad(); }
+  else { setBg("office", "rgba(20,30,60,.55)"); AudioFX.lose(); }
+  $("sprites").innerHTML = "";
+  $("msgbox").style.display = "none";
+  $("sceneTag").style.display = "none";
+  renderHud();
+
+  $("endingCard").innerHTML = `
+    <h2 class="${e.type}">${e.title}</h2>
+    <div class="story">${e.story}</div>
+    <div class="score-line"><span id="scoreNum">0</span><span style="color:#7e95b5;">/ 100</span></div>
+    <div class="rank">${e.rank}</div>
+    <table class="b-table">${e.breakdown.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
+    <h3 style="font-size:.95rem; margin:18px 0 10px;">📋 商談振り返り(Deal Review)</h3>
+    ${S.log.map(l => `<div class="review-item ${l.tone}"><b>${l.scene} ― 「${l.choice}」</b>${l.note}</div>`).join("")}
+    <button class="restart" id="restartBtn">▶ もう一度プレイする(別の戦い方を試す)</button>`;
+  $("ending").style.display = "flex";
+  $("restartBtn").addEventListener("click", restart);
+
+  /* スコア カウントアップ */
+  const numEl = $("scoreNum");
+  if (window.__FAST) { numEl.textContent = e.total; return; }
+  const t0 = performance.now();
+  (function tick(t) {
+    const p = Math.min(1, (t - t0) / 1200);
+    numEl.textContent = Math.round(e.total * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function restart() {
+  S = newState();
+  $("ending").style.display = "none";
+  $("msgbox").style.display = "block";
+  $("sceneTag").style.display = "block";
+  transition(() => renderScene("intro"));
+}
+
+/* ---------- input ---------- */
+function toggleDrawer(open) {
+  const d = $("drawer"), s = $("drawerScrim");
+  const willOpen = open === undefined ? !d.classList.contains("open") : open;
+  d.classList.toggle("open", willOpen);
+  s.classList.toggle("on", willOpen);
+}
+
+$("stage").addEventListener("click", () => { AudioFX.init(); onAdvance(); });
+
+document.addEventListener("keydown", (e) => {
+  AudioFX.init();
+  /* タイトル */
+  if (cur.phase === "title") {
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); startGame(); }
+    return;
+  }
+  /* 資料パネル展開中は背景操作を無効化。Escで閉じる */
+  if ($("drawer").classList.contains("open")) {
+    if (e.key === "Escape") { e.preventDefault(); toggleDrawer(false); }
+    return;
+  }
+  /* 選択肢中 */
+  if (cur.phase === "choosing") {
+    if (e.key === "ArrowDown") { e.preventDefault(); moveChoiceFocus(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); moveChoiceFocus(-1); }
+    else if (/^[1-9]$/.test(e.key)) {
+      const n = +e.key - 1;
+      if (n < cur.choiceList.length) { e.preventDefault(); setChoiceFocus(n); pickChoice(n); }
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault(); if (choiceFocus >= 0) pickChoice(choiceFocus);
+    }
+    return;
+  }
+  /* 通常のテキスト送り */
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); onAdvance(); }
+});
+
+$("drawer").addEventListener("click", (e) => e.stopPropagation());
+$("drawerBtn").addEventListener("click", (e) => { e.stopPropagation(); toggleDrawer(); });
+$("drawerScrim").addEventListener("click", (e) => { e.stopPropagation(); toggleDrawer(false); });
+$("sndBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  AudioFX.muted = !AudioFX.muted;
+  $("sndBtn").textContent = AudioFX.muted ? "🔇" : "🔊";
+});
+$("title").addEventListener("click", (e) => { e.stopPropagation(); startGame(); });
+
+function startGame() {
+  if (cur.phase !== "title") return;
+  AudioFX.init(); AudioFX.select();
+  $("title").style.display = "none";
+  S = newState();
+  renderScene("intro");
+}
+
+/* ---------- boot ---------- */
+S = newState();
+setBg("office", "rgba(5,10,25,.4)");
+renderHud();
+$("namePlate").style.display = "none";
+$("msgText").textContent = "";
+</script>
+</body>
+</html>

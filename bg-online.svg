@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1c2a3e"/>
+    <stop offset="100%" stop-color="#14202e"/>
+  </linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#121820"/>
+    <stop offset="100%" stop-color="#0a1018"/>
+  </linearGradient>
+  <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#202e42"/>
+    <stop offset="100%" stop-color="#18243a"/>
+  </linearGradient>
+  <linearGradient id="monitor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#0a1830"/>
+    <stop offset="100%" stop-color="#0a1828"/>
+  </linearGradient>
+  <linearGradient id="shelf" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1a2636"/>
+    <stop offset="100%" stop-color="#141e2c"/>
+  </linearGradient>
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="12" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="blur5"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+
+<!-- Ceiling -->
+<rect width="1600" height="95" fill="url(#ceil)"/>
+<rect y="92" width="1600" height="5" fill="#0a1018" opacity="0.8"/>
+
+<!-- Back wall (dark tech room) -->
+<rect y="95" width="1600" height="585" fill="url(#wall)"/>
+
+<!-- Subtle tech grid on wall -->
+<line x1="0" y1="200" x2="1600" y2="200" stroke="#2a3e58" stroke-width="1" opacity="0.40"/>
+<line x1="0" y1="340" x2="1600" y2="340" stroke="#2a3e58" stroke-width="1" opacity="0.35"/>
+<line x1="0" y1="480" x2="1600" y2="480" stroke="#2a3e58" stroke-width="1" opacity="0.35"/>
+<line x1="0" y1="620" x2="1600" y2="620" stroke="#2a3e58" stroke-width="1" opacity="0.40"/>
+<line x1="266"  y1="95" x2="266"  y2="680" stroke="#2a3e58" stroke-width="1" opacity="0.30"/>
+<line x1="532"  y1="95" x2="532"  y2="680" stroke="#2a3e58" stroke-width="1" opacity="0.30"/>
+<line x1="800"  y1="95" x2="800"  y2="680" stroke="#2a3e58" stroke-width="1" opacity="0.25"/>
+<line x1="1068" y1="95" x2="1068" y2="680" stroke="#2a3e58" stroke-width="1" opacity="0.30"/>
+<line x1="1334" y1="95" x2="1334" y2="680" stroke="#2a3e58" stroke-width="1" opacity="0.30"/>
+
+<!-- Floor (dark) -->
+<rect y="680" width="1600" height="220" fill="url(#floor)"/>
+<rect y="678" width="1600" height="6" fill="#080e16" opacity="0.9"/>
+
+<!-- Floor perspective lines -->
+<line x1="0"    y1="900" x2="800" y2="680" stroke="#1a2840" stroke-width="2" opacity="0.40"/>
+<line x1="400"  y1="900" x2="800" y2="680" stroke="#1a2840" stroke-width="1.5" opacity="0.28"/>
+<line x1="800"  y1="900" x2="800" y2="680" stroke="#1a2840" stroke-width="1.5" opacity="0.22"/>
+<line x1="1200" y1="900" x2="800" y2="680" stroke="#1a2840" stroke-width="1.5" opacity="0.28"/>
+<line x1="1600" y1="900" x2="800" y2="680" stroke="#1a2840" stroke-width="2" opacity="0.40"/>
+
+<!-- Left bookshelf (home office vibes) -->
+<rect x="40" y="130" width="240" height="520" rx="4" fill="url(#shelf)"/>
+<rect x="40" y="130" width="240" height="520" rx="4" fill="none" stroke="#0e1a28" stroke-width="5"/>
+<rect x="40" y="220" width="240" height="6" fill="#0e1a28" opacity="0.8"/>
+<rect x="40" y="340" width="240" height="6" fill="#0e1a28" opacity="0.8"/>
+<rect x="40" y="460" width="240" height="6" fill="#0e1a28" opacity="0.8"/>
+<!-- Books - cooler tones -->
+<rect x="52"  y="142" width="20" height="74" fill="#1a3060" opacity="0.9"/>
+<rect x="74"  y="145" width="16" height="71" fill="#0e4020" opacity="0.9"/>
+<rect x="92"  y="142" width="22" height="74" fill="#3a1818" opacity="0.9"/>
+<rect x="116" y="148" width="18" height="68" fill="#1a2840" opacity="0.9"/>
+<rect x="136" y="142" width="24" height="74" fill="#281040" opacity="0.9"/>
+<rect x="162" y="145" width="16" height="71" fill="#0e2838" opacity="0.9"/>
+<rect x="180" y="142" width="22" height="74" fill="#3a2808" opacity="0.9"/>
+<rect x="204" y="148" width="18" height="68" fill="#1a3828" opacity="0.9"/>
+<rect x="224" y="142" width="22" height="74" fill="#401010" opacity="0.9"/>
+<!-- Row 2 -->
+<rect x="52"  y="232" width="24" height="104" fill="#0e2848" opacity="0.9"/>
+<rect x="78"  y="235" width="18" height="101" fill="#1e3010" opacity="0.9"/>
+<rect x="98"  y="232" width="20" height="104" fill="#3e1a0a" opacity="0.9"/>
+<rect x="120" y="235" width="22" height="101" fill="#181e38" opacity="0.9"/>
+<rect x="144" y="232" width="16" height="104" fill="#281440" opacity="0.9"/>
+<rect x="162" y="235" width="24" height="101" fill="#0e3038" opacity="0.9"/>
+<rect x="188" y="232" width="18" height="104" fill="#2a1808" opacity="0.9"/>
+<rect x="208" y="235" width="22" height="101" fill="#0e3820" opacity="0.9"/>
+<rect x="232" y="232" width="16" height="104" fill="#381018" opacity="0.9"/>
+<!-- Plant/decor -->
+<circle cx="125" cy="370" r="20" fill="#0e2c18" opacity="0.8"/>
+<rect x="118" y="390" width="14" height="25" fill="#0e1e10" opacity="0.7"/>
+
+<!-- Main monitor (center, large) -->
+<rect x="450" y="145" width="700" height="430" rx="8" fill="#08101e" opacity="0.95"/>
+<rect x="450" y="145" width="700" height="430" rx="8" fill="none" stroke="#1e3050" stroke-width="10"/>
+<!-- Monitor bezels -->
+<rect x="450" y="145" width="700" height="25" rx="8" fill="#0e1830" opacity="0.95"/>
+<!-- Screen content: dark UI with glow -->
+<rect x="465" y="182" width="670" height="380" fill="#050e1c" opacity="0.95"/>
+<!-- UI elements on screen -->
+<rect x="480" y="195" width="300" height="18" rx="3" fill="#1e4080" opacity="0.55"/>
+<rect x="480" y="223" width="640" height="8" rx="2" fill="#183060" opacity="0.35"/>
+<rect x="480" y="241" width="580" height="8" rx="2" fill="#183060" opacity="0.28"/>
+<rect x="480" y="259" width="620" height="8" rx="2" fill="#183060" opacity="0.28"/>
+<!-- Graph/chart on screen -->
+<polyline points="480,460 560,410 640,420 720,370 800,360 880,380 960,340 1040,320 1120,350" fill="none" stroke="#2a80e0" stroke-width="3" opacity="0.60"/>
+<rect x="480" y="320" width="1" height="145" fill="#2a80e0" opacity="0.30"/>
+<!-- Status bar -->
+<rect x="465" y="545" width="670" height="18" fill="#0a1828" opacity="0.95"/>
+<!-- Screen glow -->
+<ellipse cx="800" cy="380" rx="320" ry="200" fill="#0a3070" opacity="0.08" filter="url(#glow)"/>
+<!-- Monitor stand -->
+<rect x="775" y="575" width="50" height="70" fill="#101828" opacity="0.9"/>
+<rect x="680" y="642" width="240" height="12" rx="3" fill="#0e1a28" opacity="0.85"/>
+
+<!-- Right side: video call tiles (blurred suggestion) -->
+<rect x="1360" y="140" width="200" height="120" rx="6" fill="#0e1e34" opacity="0.80" filter="url(#blur5)"/>
+<rect x="1360" y="268" width="200" height="120" rx="6" fill="#0a1828" opacity="0.75" filter="url(#blur5)"/>
+<rect x="1360" y="396" width="200" height="120" rx="6" fill="#0e1e34" opacity="0.80" filter="url(#blur5)"/>
+<!-- Small person silhouette in tiles -->
+<ellipse cx="1460" cy="185" rx="22" ry="22" fill="#1a304c" opacity="0.7"/>
+<rect x="1435" y="207" width="50" height="35" rx="5" fill="#1a304c" opacity="0.5"/>
+<ellipse cx="1460" cy="313" rx="22" ry="22" fill="#142a40" opacity="0.7"/>
+<rect x="1435" y="335" width="50" height="35" rx="5" fill="#142a40" opacity="0.5"/>
+
+<!-- Ceiling LED strip -->
+<rect x="0" y="80" width="1600" height="14" fill="#1a3060" opacity="0.60"/>
+<rect x="0" y="80" width="1600" height="6" fill="#4080d0" opacity="0.20"/>
+<!-- LED glow -->
+<rect x="0" y="90" width="1600" height="40" fill="#1a4080" opacity="0.08"/>
+
+<!-- Status indicator lights (ceiling bar) -->
+<circle cx="40"  cy="30" r="8" fill="#00c060" opacity="0.75"/>
+<circle cx="80"  cy="30" r="8" fill="#00c060" opacity="0.60"/>
+<circle cx="120" cy="30" r="8" fill="#e04000" opacity="0.50"/>
+
+<!-- Baseboard -->
+<rect y="670" width="1600" height="12" fill="#080e18" opacity="0.8"/>
+</svg>

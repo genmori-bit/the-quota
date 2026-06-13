@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2c201a"/>
+    <stop offset="100%" stop-color="#1e1610"/>
+  </linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2a1e14"/>
+    <stop offset="100%" stop-color="#1c1208"/>
+  </linearGradient>
+  <linearGradient id="ceil" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#241a12"/>
+    <stop offset="100%" stop-color="#1c1208"/>
+  </linearGradient>
+  <linearGradient id="winLight" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#f0d890" stop-opacity="0.9"/>
+    <stop offset="100%" stop-color="#e8c870" stop-opacity="0.6"/>
+  </linearGradient>
+  <linearGradient id="shelf" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#3a2a1e"/>
+    <stop offset="100%" stop-color="#2e2218"/>
+  </linearGradient>
+  <linearGradient id="desk" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#4a3020"/>
+    <stop offset="100%" stop-color="#3a2018"/>
+  </linearGradient>
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="18" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+
+<!-- Ceiling -->
+<rect width="1600" height="95" fill="url(#ceil)"/>
+<rect y="92" width="1600" height="5" fill="#100a06" opacity="0.7"/>
+
+<!-- Back wall (dark wood panel) -->
+<rect y="95" width="1600" height="585" fill="url(#wall)"/>
+
+<!-- Wood panel vertical lines -->
+<line x1="200"  y1="95" x2="200"  y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+<line x1="400"  y1="95" x2="400"  y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+<line x1="600"  y1="95" x2="600"  y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+<line x1="800"  y1="95" x2="800"  y2="680" stroke="#120e0a" stroke-width="3" opacity="0.4"/>
+<line x1="1000" y1="95" x2="1000" y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+<line x1="1200" y1="95" x2="1200" y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+<line x1="1400" y1="95" x2="1400" y2="680" stroke="#120e0a" stroke-width="4" opacity="0.5"/>
+
+<!-- Floor (dark wood parquet) -->
+<rect y="680" width="1600" height="220" fill="url(#floor)"/>
+<rect y="678" width="1600" height="6" fill="#0e0806" opacity="0.8"/>
+<!-- Floor lines -->
+<line x1="0"    y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="2" opacity="0.45"/>
+<line x1="320"  y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="1.5" opacity="0.30"/>
+<line x1="640"  y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="1.5" opacity="0.25"/>
+<line x1="960"  y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="1.5" opacity="0.25"/>
+<line x1="1280" y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="1.5" opacity="0.30"/>
+<line x1="1600" y1="900" x2="800" y2="680" stroke="#240e04" stroke-width="2" opacity="0.45"/>
+
+<!-- Left bookshelf -->
+<rect x="30" y="110" width="240" height="560" rx="4" fill="url(#shelf)"/>
+<rect x="30" y="110" width="240" height="560" rx="4" fill="none" stroke="#120c08" stroke-width="6"/>
+<!-- Shelves -->
+<rect x="30" y="200" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="30" y="310" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="30" y="420" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="30" y="530" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<!-- Books (colorful spines) -->
+<rect x="42" y="124" width="22" height="72" fill="#6a3020" opacity="0.8"/>
+<rect x="66" y="124" width="18" height="72" fill="#204060" opacity="0.8"/>
+<rect x="86" y="135" width="24" height="61" fill="#2a4a1a" opacity="0.8"/>
+<rect x="112" y="124" width="16" height="72" fill="#502010" opacity="0.8"/>
+<rect x="130" y="128" width="20" height="68" fill="#183040" opacity="0.8"/>
+<rect x="152" y="124" width="22" height="72" fill="#3a2a10" opacity="0.8"/>
+<rect x="176" y="132" width="18" height="64" fill="#3a1818" opacity="0.8"/>
+<rect x="196" y="124" width="20" height="72" fill="#183820" opacity="0.8"/>
+<rect x="218" y="128" width="16" height="68" fill="#402010" opacity="0.8"/>
+<!-- Row 2 -->
+<rect x="42" y="215" width="20" height="90" fill="#301010" opacity="0.8"/>
+<rect x="64" y="218" width="24" height="87" fill="#102040" opacity="0.8"/>
+<rect x="90" y="215" width="18" height="90" fill="#304020" opacity="0.8"/>
+<rect x="110" y="220" width="22" height="85" fill="#402814" opacity="0.8"/>
+<rect x="134" y="215" width="16" height="90" fill="#202840" opacity="0.8"/>
+<rect x="152" y="218" width="24" height="87" fill="#381a10" opacity="0.8"/>
+<rect x="178" y="215" width="18" height="90" fill="#183028" opacity="0.8"/>
+<rect x="198" y="220" width="22" height="85" fill="#3a2a18" opacity="0.8"/>
+<rect x="222" y="215" width="14" height="90" fill="#2a1428" opacity="0.8"/>
+<!-- Small decorative items -->
+<rect x="42" y="440" width="60" height="50" rx="3" fill="#4a3828" opacity="0.7"/>
+<rect x="170" y="445" width="40" height="45" rx="2" fill="#3a2818" opacity="0.6"/>
+
+<!-- Right bookshelf -->
+<rect x="1330" y="110" width="240" height="560" rx="4" fill="url(#shelf)"/>
+<rect x="1330" y="110" width="240" height="560" rx="4" fill="none" stroke="#120c08" stroke-width="6"/>
+<rect x="1330" y="200" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="1330" y="310" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="1330" y="420" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<rect x="1330" y="530" width="240" height="8" fill="#120c08" opacity="0.7"/>
+<!-- Books right -->
+<rect x="1342" y="124" width="22" height="72" fill="#204060" opacity="0.8"/>
+<rect x="1366" y="130" width="18" height="66" fill="#3a2010" opacity="0.8"/>
+<rect x="1386" y="124" width="24" height="72" fill="#1a3820" opacity="0.8"/>
+<rect x="1412" y="128" width="16" height="68" fill="#502010" opacity="0.8"/>
+<rect x="1430" y="124" width="22" height="72" fill="#182840" opacity="0.8"/>
+<rect x="1454" y="130" width="18" height="66" fill="#3a2a0a" opacity="0.8"/>
+<rect x="1474" y="124" width="20" height="72" fill="#2a1228" opacity="0.8"/>
+<rect x="1496" y="128" width="22" height="68" fill="#103028" opacity="0.8"/>
+<rect x="1520" y="124" width="18" height="72" fill="#3a1808" opacity="0.8"/>
+<!-- Row 2 right -->
+<rect x="1342" y="215" width="24" height="90" fill="#301818" opacity="0.8"/>
+<rect x="1368" y="218" width="18" height="87" fill="#0e2038" opacity="0.8"/>
+<rect x="1388" y="215" width="22" height="90" fill="#1a3818" opacity="0.8"/>
+<rect x="1412" y="220" width="16" height="85" fill="#401808" opacity="0.8"/>
+<rect x="1430" y="215" width="24" height="90" fill="#283040" opacity="0.8"/>
+<rect x="1456" y="218" width="18" height="87" fill="#2a1a06" opacity="0.8"/>
+<rect x="1476" y="215" width="22" height="90" fill="#103020" opacity="0.8"/>
+<rect x="1500" y="220" width="16" height="85" fill="#3a280e" opacity="0.8"/>
+<rect x="1518" y="215" width="18" height="90" fill="#301428" opacity="0.8"/>
+
+<!-- Large window (right side, warm light) -->
+<rect x="1140" y="130" width="180" height="450" rx="6" fill="url(#winLight)"/>
+<rect x="1140" y="130" width="180" height="450" rx="6" fill="none" stroke="#3a2818" stroke-width="10"/>
+<line x1="1228" y1="130" x2="1228" y2="580" stroke="#3a2818" stroke-width="7"/>
+<line x1="1140" y1="355" x2="1320" y2="355" stroke="#3a2818" stroke-width="7"/>
+<!-- Warm light glow on wall/floor -->
+<ellipse cx="1000" cy="400" rx="350" ry="280" fill="#f0c860" opacity="0.06" filter="url(#glow)"/>
+<path d="M1140 578 L1320 578 L1600 900 L800 900 Z" fill="#e0b040" opacity="0.07"/>
+
+<!-- Desk lamp glow (on exec desk) -->
+<ellipse cx="800" cy="620" rx="180" ry="80" fill="#f0c840" opacity="0.08"/>
+
+<!-- Executive desk (bottom center) -->
+<rect x="200" y="720" width="1200" height="180" rx="6" fill="url(#desk)"/>
+<rect x="200" y="720" width="1200" height="180" rx="6" fill="none" stroke="#1e1208" stroke-width="4"/>
+<!-- Desk surface highlight -->
+<rect x="210" y="721" width="1180" height="30" rx="4" fill="#5a3a22" opacity="0.40"/>
+
+<!-- Ceiling pendant lamp -->
+<rect x="770" y="0" width="60" height="20" fill="#2a1e14" opacity="0.7"/>
+<rect x="790" y="20" width="20" height="80" fill="#2a1e14" opacity="0.5"/>
+<ellipse cx="800" cy="120" rx="60" ry="30" fill="#c0a030" opacity="0.55"/>
+<ellipse cx="800" cy="120" rx="60" ry="30" fill="none" stroke="#2a1e14" stroke-width="4"/>
+<ellipse cx="800" cy="115" rx="220" ry="100" fill="#d8a020" opacity="0.10"/>
+
+<!-- Baseboard -->
+<rect y="670" width="1600" height="12" fill="#0e0a06" opacity="0.7"/>
+</svg>
