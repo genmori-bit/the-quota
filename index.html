@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>THE QUOTA ― 外資IT AE 商談シミュレーター</title>
-<meta name="description" content="外資ITのアカウントエグゼクティブとして、MEDDICで東陽精機との商談を13週で攻略するビジネスADV。">
+<meta name="description" content="外資ITのアカウントエグゼクティブとして、13週間で東陽精機案件の真相を掴むビジネスサスペンスADV。競合DataNovaの影、Championの揺らぎ、役員会の最終決戦。">
 <meta name="theme-color" content="#050b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:type" content="website">
 <meta property="og:title" content="THE QUOTA ― 外資IT AE 商談シミュレーター">
-<meta property="og:description" content="MEDDICで東陽精機との商談を13週で攻略するビジネスADV。あなたの選択が四半期の数字を決める。">
+<meta property="og:description" content="13週間で大型商談の真相を掴むビジネスサスペンスADV。あなたの営業判断が、7つの結末を分ける。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23050b18'/><text x='50' y='68' font-size='54' font-weight='900' text-anchor='middle' fill='%234da3ff' font-family='sans-serif'>Q</text></svg>">
 <style>
   :root {
@@ -302,7 +302,22 @@
   }
   .meddic-item.on .dot { background: var(--good); border-color: var(--good); color: #06270f; }
   .meddic-item.on .dot::after { content: "✓"; }
-  .meddic-item small { display: block; color: #7e95b5; font-size: .7rem; }
+  .meddic-item.mid .dot { border-color: var(--warn); color: var(--warn); }
+  .meddic-item.mid .dot::after { content: "?"; font-weight: 700; }
+  .meddic-item small { display: block; color: #7e95b5; font-size: .7rem; line-height: 1.55; margin-top: 1px; }
+  .meddic-item .lv {
+    font-style: normal; font-size: .6rem; font-weight: 700; letter-spacing: .04em;
+    margin-left: 7px; padding: 1px 7px; border-radius: 99px; vertical-align: 1px;
+    color: var(--ink-mute); border: 1px solid rgba(255,255,255,.14);
+  }
+  .meddic-item.on .lv { color: var(--good); border-color: rgba(74,222,128,.45); }
+  .meddic-item.mid .lv { color: var(--warn); border-color: rgba(251,191,36,.45); }
+  .evt-log { max-height: 180px; overflow-y: auto; }
+  .evt {
+    display: flex; gap: 9px; padding: 5px 0; font-size: .76rem; color: #aebed2;
+    line-height: 1.55; border-bottom: 1px dashed rgba(255,255,255,.07);
+  }
+  .evt .ew { color: var(--accent-2); font-weight: 700; flex-shrink: 0; font-variant-numeric: tabular-nums; }
   #drawerNotes { color: #aebed2; font-size: .78rem; line-height: 1.7; }
 
   /* ---------- overlays (title / ending / transition) ---------- */
@@ -781,22 +796,32 @@ const BGS = {
    ゲーム状態
 ============================================================ */
 const MEDDIC_DEFS = [
-  { key: "M",  name: "Metrics",           jp: "効果の定量化" },
-  { key: "E",  name: "Economic Buyer",    jp: "決裁者の特定・面会" },
-  { key: "DC", name: "Decision Criteria", jp: "選定基準の把握" },
-  { key: "DP", name: "Decision Process",  jp: "決裁プロセスの把握" },
-  { key: "I",  name: "Identify Pain",     jp: "課題の特定" },
-  { key: "C",  name: "Champion",          jp: "社内推進者の確立" },
+  { key: "M",  name: "Metrics",           jp: "効果の定量化",       q: "この投資は、いくらの経営インパクトなのか?" },
+  { key: "E",  name: "Economic Buyer",    jp: "決裁者の特定・面会", q: "最終的に首を縦に振るのは、誰なのか?" },
+  { key: "DC", name: "Decision Criteria", jp: "選定基準の把握",     q: "彼らは何を「ものさし」に選ぶのか?" },
+  { key: "DP", name: "Decision Process",  jp: "決裁プロセスの把握", q: "どの会議体を、どの順番で通るのか?" },
+  { key: "I",  name: "Identify Pain",     jp: "課題の特定",         q: "この会社は本当は、何に困っているのか?" },
+  { key: "C",  name: "Champion",          jp: "社内推進者の確立",   q: "社内であなたの代わりに戦う人は、いるのか?" },
 ];
 const QUARTER_WEEKS = 13;
 let S;
 function newState() {
   return {
     week: 1, trust: 50, discount: 0, stage: "発掘",
-    meddic: { M: false, E: false, DC: false, DP: false, I: false, C: false },
-    flags: {}, notes: [], log: [],
+    /* MEDDIC: 0=未確認 1=仮説あり 2=確認済み */
+    meddic: { M: 0, E: 0, DC: 0, DP: 0, I: 0, C: 0 },
+    mdNote: {},          // 攻略ノート: 項目ごとの現在の手がかりテキスト
+    events: [],          // 商談ログ: { w: 週, t: 出来事 }
+    flags: {}, log: [],
   };
 }
+/* MEDDIC更新: レベルは原則上がるのみ(0指定で喪失)。note=攻略ノート文 */
+function md(key, lvl, note) {
+  S.meddic[key] = lvl === 0 ? 0 : Math.max(S.meddic[key], lvl);
+  if (note !== undefined) S.mdNote[key] = note;
+}
+/* 商談ログへ週付きで記録 */
+const evt = (t) => S.events.push({ w: Math.min(S.week, QUARTER_WEEKS), t });
 
 /* 行ヘルパー: n=ナレーション, d=セリフ */
 const n = (text) => ({ sp: null, text });
@@ -825,22 +850,31 @@ intro: {
         n("有価証券報告書と中期経営計画を精読した。中計には『データドリブン経営への転換』『在庫回転率の改善』が明記されている。"),
         n("課題仮説のメモを携えて、翌週のアポを取った。"),
       ],
-      effects: () => { S.week += 1; S.flags.prep = true; S.notes.push("中計に『データドリブン経営』の記載あり"); },
-      coach: { tone: "good", note: "初回訪問前の仮説構築は鉄則。顧客の公開情報(IR・中計)は最強の武器になる。" },
+      effects: () => {
+        S.week += 1; S.flags.prep = true;
+        md("I", 1, "仮説: 中計に『データドリブン経営への転換』『在庫回転率の改善』——現場データの分断が匂う");
+        md("M", 1, "仮説: 在庫回転率が経営アジェンダ。金額への換算はまだできていない");
+        evt("IR・中計を読了。課題仮説を構築");
+      },
+      coach: { tone: "good", note: "初回訪問前の仮説構築は鉄則。顧客の公開情報(IR・中計)は最強の武器になる。代償は1週間という時間。" },
       next: "firstMeeting",
     },
     {
       label: "標準デモを徹底的に磨き込んでから訪問する",
-      result: () => [n("デモ環境を整備し、シナリオを練り込んだ。製品は完璧に語れる。——ただし東陽精機固有の事情は、まだ何も知らない。")],
-      effects: () => { S.week += 1; },
-      coach: { tone: "neutral", note: "デモの品質は大事だが、顧客理解の代わりにはならない。初回は『聞く』準備の方が価値が高い。" },
+      result: () => [n("デモ環境を整備し、シナリオを練り込んだ。製品は完璧に語れる——技術評価になれば、これは武器になる。ただし東陽精機固有の事情は、まだ何も知らない。")],
+      effects: () => {
+        S.week += 1; S.flags.demoReady = true;
+        md("DC", 1, "仮説: 技術評価で刺されば土俵を作れる。ただし先方の選定基準は未確認");
+        evt("標準デモを磨き込んだ(技術評価の武器)");
+      },
+      coach: { tone: "neutral", note: "デモの完成度は技術評価フェーズで効く投資。ただし顧客理解の代わりにはならない。何を捨てたかを自覚しておくこと。" },
       next: "firstMeeting",
     },
     {
       label: "鉄は熱いうちに打て。準備より速度、今週中にアポを入れて会いに行く",
-      result: () => [n("リード入電の翌日にアポが取れた。スピードは申し分ない。ただし手元にあるのは、会社概要の1ページだけだ。")],
-      effects: () => { S.flags.noprep = true; },
-      coach: { tone: "neutral", note: "レスポンスの速さは武器。ただし丸腰の初回訪問は質問の深さで差が出る。最低限の下調べは欲しかった。" },
+      result: () => [n("リード入電の翌日にアポが取れた。スピードは申し分ない——1週間の先行は、13週しかない四半期では大きい。ただし手元にあるのは、会社概要の1ページだけだ。")],
+      effects: () => { S.flags.noprep = true; evt("準備ゼロで最速アポ(1週の先行)"); },
+      coach: { tone: "neutral", note: "レスポンスの速さは実利(1週の貯金)。ただし丸腰の初回訪問は質問の深さで差が出る。速度で買った時間を、どこで返すか。" },
       next: "firstMeeting",
     },
   ],
@@ -868,21 +902,32 @@ firstMeeting: {
         return r;
       },
       effects: () => {
-        S.meddic.I = true; S.trust += S.flags.prep ? 15 : 10; S.week += 1; S.stage = "商談化";
-        S.notes.push("Pain: データ分断/月次レポートに10営業日");
+        S.trust += S.flags.prep ? 15 : 10; S.week += 1; S.stage = "商談化";
+        md("I", 2, "確認: 生産・販売・在庫のデータが部門ごとに分断。月次レポートに10営業日、役員は『数字の鮮度』に不満");
+        evt("Pain確認: データ分断/月次レポート10営業日");
       },
-      coach: { tone: "good", note: "初回商談の目的は売ることではなく、Pain(課題)の構造を特定すること。MEDDICの『I』をここで取れた。" },
+      coach: { tone: "good", note: "初回商談の目的は売ることではなく、Pain(課題)の構造を特定すること。MEDDICの『I』をここで確認できた。" },
       next: "deepDive",
     },
     {
       label: "「まさに弊社の得意領域です」と、磨き上げたデモを開始する",
-      result: () => [
+      result: () => S.flags.demoReady ? [
+        n("磨き込んだデモは、さすがに見栄えがした。五十嵐課長が身を乗り出す場面もあった。"),
+        d("sato", "normal", "「……操作性は、正直いいですね。ただ、うちの実データでどう動くかは、別の話ですが」"),
+        n("土俵には乗った。だが、彼が本当に困っていることはまだ聞けていない。"),
+      ] : [
         n("デモ自体の反応は悪くない。だが五十嵐課長の相槌は、次第に「なるほど」「はい」だけになっていった。"),
         d("sato", "normal", "「資料だけ頂けますか。社内で検討します」"),
         n("……商談の主導権が、早くも閉じかけている。"),
       ],
-      effects: () => { S.trust -= 5; S.week += 1; S.stage = "商談化"; },
-      coach: { tone: "bad", note: "課題を特定する前のデモは『機能の押し売り』に見える。顧客が話した時間より自分が話した時間が長い初回商談は、たいてい負け筋。" },
+      effects: () => {
+        S.week += 1; S.stage = "商談化";
+        if (S.flags.demoReady) { S.trust += 3; md("DC", 1, "仮説: 操作性・見た目は刺さる。ただし正式な選定基準は未確認"); evt("デモで先制——技術面の期待値を形成"); }
+        else S.trust -= 5;
+      },
+      coach: () => S.flags.demoReady
+        ? { tone: "neutral", note: "磨いたデモが期待値を作った。投資は回収した形。ただしPainは未特定のまま——次は必ず『聞く』に戻ること。" }
+        : { tone: "bad", note: "課題を特定する前の未整備なデモは『機能の押し売り』に見える。顧客が話した時間より自分が話した時間が長い初回商談は、たいてい負け筋。" },
       next: "deepDive",
     },
     {
@@ -916,7 +961,11 @@ deepDive: {
         n("集計すると——月次レポート関連の工数は全社で延べ320時間/月。在庫データの分断による欠品・過剰在庫の損失は、年間推定2.4億円。"),
         d("murata", "smile", "「……あんた、現場の話を聞く営業なんだな」"),
       ],
-      effects: () => { S.meddic.M = true; S.trust += 12; S.week += 1; S.notes.push("Metrics: 工数320h/月、在庫損失 年2.4億円"); },
+      effects: () => {
+        S.trust += 12; S.week += 1; S.flags.genbaAlly = true;
+        md("M", 2, "確認: 月次工数320h/月・在庫分断の損失は年2.4億円(DERA部長と共同算出)");
+        evt("Metrics確定: 320h/月・年2.4億円——現場が味方に");
+      },
       coach: { tone: "good", note: "Painを金額・時間に換算するのがMetrics。後の役員プレゼンと価格交渉の生命線になる。現場を味方にしたのも大きい。" },
       next: "processOrg",
     },
@@ -938,7 +987,7 @@ deepDive: {
         n("会議後、廊下で彼が誰かに電話している声が聞こえた。"),
         d("murata", "normal", "「……例の件、現場としては慎重にって言っといて」"),
       ],
-      effects: () => { S.trust -= 8; S.week += 1; S.flags.genbaIgnored = true; },
+      effects: () => { S.trust -= 8; S.week += 1; S.flags.genbaIgnored = true; evt("DERA部長が沈黙——現場は『慎重に』と回している"); },
       coach: { tone: "bad", note: "エンタープライズ商談は多数決。沈黙した反対派は、見えない場所で案件を殺す。現場のNoは役員会まで追いかけてくる。" },
       next: "processOrg",
     },
@@ -959,14 +1008,16 @@ processOrg: {
       result: () => [
         d("sato", "normal", "「情シスで技術評価をして、5,000万円を超える投資は経営会議マターです」"),
         d("sato", "worried", "「実質的な決裁者は、経営企画担当の代々原常務。ただ……常務は外資のクラウドには、かなり慎重派ですよ」"),
-        n("決裁ルートと決裁者(Economic Buyer)、そして最大の関門が見えた。"),
+        d("sato", "normal", "「あと、金額が金額なので——経営会議の前に、購買部の審査が入ります。高牟礼さんという方で、その、なかなか手強い方です」"),
+        n("決裁ルート、決裁者(Economic Buyer)、そして手前に潜む関門まで見えた。"),
       ],
       effects: () => {
-        S.meddic.DP = true; S.meddic.E = true; S.trust += 8; S.week += 1; S.stage = "提案";
-        S.notes.push("EB: 代々原常務(経営企画)。5,000万超は経営会議");
-        S.notes.push("DP: 情シス技術評価 → 経営会議");
+        S.trust += 8; S.week += 1; S.stage = "提案";
+        md("DP", 2, "確認: 情シス技術評価 → 購買審査(高牟礼氏) → 経営会議。5,000万超は経営会議マター");
+        md("E", 1, "特定: 決裁者は代々原常務(経営企画)。外資クラウド慎重派——まだ会えていない");
+        evt("決裁ルート判明: 購買審査→経営会議/EB=代々原常務");
       },
-      coach: { tone: "good", note: "『誰が・いつ・どう決めるか』を知らずに期日コミットはできない。DPとEBを同時に取れた、教科書的な一手。" },
+      coach: { tone: "good", note: "『誰が・いつ・どう決めるか』を知らずに期日コミットはできない。DPの確認とEBの特定を同時に取れた、教科書的な一手。" },
       next: "champion",
     },
     {
@@ -1010,10 +1061,15 @@ champion: {
         n("2回の作業会を重ね、常務の懸念——セキュリティ、外資依存、コスト——に先回りした想定問答集まで作り込んだ。"),
         d("sato", "smile", "「ここまで付き合ってくれるベンダーは初めてです。常務への説明の場、私がセッティングします」"),
         n("彼はもう『窓口』ではない。社内であなたの代わりに戦ってくれる——Championだ。"),
+        n("——ただし、彼は課長だ。役員会でその声がどこまで届くのかは、まだ誰にも分からない。"),
       ],
-      effects: () => { S.meddic.C = true; S.trust += 12; S.week += 1; S.notes.push("Champion: 五十嵐課長(自身のミッションとして推進)"); },
-      coach: { tone: "good", note: "Championは『仲が良い人』ではなく『社内で売ってくれる人』。彼が社内で勝つための武器を渡すのがAEの仕事。" },
-      next: "techEval",
+      effects: () => {
+        S.trust += 12; S.week += 1;
+        md("C", 2, "確認: 五十嵐課長は自らのミッションとして推進(本物)。ただし役員会での発言力は未知数");
+        evt("五十嵐課長がChampion化——常務面会を調整へ");
+      },
+      coach: { tone: "good", note: "Championは『仲が良い人』ではなく『社内で売ってくれる人』。彼が社内で勝つための武器を渡すのがAEの仕事。ただしChampionの熱意と役員会の力学は別物——過信は禁物。" },
+      next: "seAsk",
     },
     {
       label: "「ご心配なく、常務には弊社から直接ご説明しますよ」と巻き取る",
@@ -1022,9 +1078,9 @@ champion: {
         d("sato", "worried", "「……いえ、社内のことなので、まずはこちらで」"),
         n("彼が立てようとしていた手柄の旗を、あなたが横から掴んでしまった。"),
       ],
-      effects: () => { S.trust -= 6; S.week += 1; },
+      effects: () => { S.trust -= 6; S.week += 1; evt("常務説明の巻き取り提案が空振り——課長の顔が曇る"); },
       coach: { tone: "bad", note: "Champion候補の頭越しは最悪手。彼の社内政治上の勝利をデザインしてあげることが、結果的に自社の勝利になる。" },
-      next: "techEval",
+      next: "seAsk",
     },
     {
       label: "まずは関係構築。会食に誘って腹を割って話す",
@@ -1032,8 +1088,58 @@ champion: {
         n("会食は盛り上がり、五十嵐課長の人柄や社内の空気感はよく分かった。関係は確かに深まった。"),
         n("ただ——常務攻略の具体的な作戦は白紙のまま、夜が更けた。"),
       ],
-      effects: () => { S.trust += 5; S.week += 1; },
+      effects: () => {
+        S.trust += 5; S.week += 1;
+        md("C", 1, "仮説: 五十嵐課長は好意的。だが『社内で戦う武器』はまだ渡せていない");
+        evt("会食で関係深化——ただし常務対策は白紙");
+      },
       coach: { tone: "neutral", note: "関係構築は無駄ではない。ただしChampionに必要なのは好意ではなく『社内で勝てる武器』。次の一手が必要だった。" },
+      next: "seAsk",
+    },
+  ],
+},
+
+seAsk: {
+  bg: "office", cast: ["kevin"],
+  tag: () => `第${S.week}週 ― Veltrix オフィス`,
+  stage: "提案",
+  lines: () => [
+    n("週次フォーキャスト会議。あなたの画面を見た阿部が、机を指でトントンと叩いた。"),
+    d("kevin", "normal", "「東陽精機、ステージ『提案』か。——で、これはコミットに入れていい数字なのか? ベストケースか?」"),
+    n("答えに詰まる。決まっていないことを決まっているように言えば、外した時に信用が死ぬ。かといって弱気な数字は、案件への支援を減らす。"),
+    d("kevin", "angry", "「技術評価に入るなら、SEの田中を巻き込め。ただし言っておくが、あいつは今3案件抱えてる。工数は取り合いだ」"),
+    n("SEの田中——社内で一番忙しく、一番腕のいいソリューションエンジニア。彼をどう巻き込む?"),
+  ],
+  choices: [
+    {
+      label: "「30分ください」と田中の席へ直行。顧客のPain・数字・競合状況から共有し、正式アサインを依頼する",
+      result: () => [
+        n("最初は画面から目を離さなかった田中が、途中からメモを取り始めた。"),
+        n("「……この案件、面白いですね。ERP連携が肝なら、俺が入る価値がある」——彼は自分のカレンダーを開き、Fit&Gap用の枠を2週間分ブロックしてくれた。"),
+      ],
+      effects: () => { S.week += 1; S.flags.seTrust = 2; evt("SE田中が正式アサイン——Fit&Gap体制を確保"); },
+      coach: { tone: "good", note: "SEは『作業者』ではなく提案の共同オーナー。背景と勝ち筋から共有された案件にだけ、人は本気になる。1週間の投資の価値はある。" },
+      next: "techEval",
+    },
+    {
+      label: "時間が惜しい。Slackで「連携部分の確認だけお願いできますか」と依頼を投げて先へ進む",
+      result: () => [
+        n("既読はすぐ付いた。返信は翌日。「優先度を教えてください。今3案件あるので」——やり取りだけで3往復。"),
+        n("結局『できる範囲で見ておきます』という、玉虫色の返事で終わった。"),
+      ],
+      effects: () => { S.flags.seTrust = 1; evt("SE依頼はSlackのみ——優先度は上がらず"); },
+      coach: { tone: "neutral", note: "時間は節約できた。ただし依頼は軽いほど軽く扱われる。SEの工数は『早い者勝ち』ではなく『本気度勝ち』で配分される。" },
+      next: "techEval",
+    },
+    {
+      label: "SEは使わない。製品知識なら自分にもある。単独で技術評価を乗り切る",
+      result: () => [
+        n(S.flags.demoReady
+          ? "磨き込んだデモ環境がある。単独でも戦える——はずだ。"
+          : "ひとりで検証環境を組み始めたが、ERPコネクタの仕様書は300ページあった。……これを、読み切れるのか。"),
+      ],
+      effects: () => { S.flags.seTrust = 0; evt("SEなしで技術評価へ(単独)"); },
+      coach: { tone: "neutral", note: "速度は最速。だがエンタープライズの技術評価では、専門家の同席そのものが信頼になる。単独提案は『本気度が低い』と映るリスクを孕む。" },
       next: "techEval",
     },
   ],
@@ -1045,47 +1151,117 @@ techEval: {
   stage: "提案",
   lines: () => [
     n("技術評価のフェーズに入った。会議室に入ると、五十嵐課長の表情がいつもより硬い。"),
-    d("sato", "normal", "「お伝えしておくと——NSG、日本システム技研さんにも提案を依頼しました」"),
-    d("sato", "normal", "「先方は『国産・オンプレ・御社の既存ERPと完全互換』を打ち出しています」"),
+    d("sato", "normal", "「お伝えしておくと——競合が入りました。DataNova(データノヴァ)さんです」"),
+    d("sato", "normal", "「うちの基幹系を15年見ている日本システム技研さんが、DataNovaを担いで提案してきていて。『現行資産を活かす、いちばん安全な移行』を打ち出しています」"),
     d("sato", "worried", "「それでお聞きしたいのですが……うちのERPはかなりカスタマイズされています。Veltrixとの連携は、本当に大丈夫ですか?」"),
-    n("競合登場。そして技術的に最も重い質問が直球で来た。実際のところ、標準コネクタでカバーできるのは経験上8割。残りは現物を見ないと分からない。"),
+    n("競合登場。しかも既存ベンダー連合だ。そして技術的に最も重い質問が直球で来た。実際のところ、標準コネクタでカバーできるのは経験上8割。残りは現物を見ないと分からない。"),
   ],
   choices: [
     {
       label: "正直に伝える。「標準連携で8割。残り2割は、2週間のFit&Gapアセスメントで白黒つけさせてください」",
-      result: () => [
-        n("一瞬の、沈黙。"),
-        d("sato", "shock", "「……『全部できます』と言わないベンダーは、御社が初めてです」"),
-        d("sato", "smile", "「正直、信用できます。Fit&Gap、社内で調整しましょう」"),
-        n("アセスメントの過程で、先方の選定基準も明文化された。——①既存ERP連携の実現性 ②セキュリティ・ガバナンス ③5年TCO。"),
-      ],
-      effects: () => {
-        S.meddic.DC = true; S.trust += 12; S.week += 2;
-        S.notes.push("競合: NSG(国産・オンプレ・互換性訴求)");
-        S.notes.push("DC: ①ERP連携 ②セキュリティ ③5年TCO");
+      result: () => {
+        const r = [
+          n("一瞬の、沈黙。"),
+          d("sato", "shock", "「……『全部できます』と言わないベンダーは、御社が初めてです」"),
+          d("sato", "smile", "「正直、信用できます。Fit&Gap、社内で調整しましょう」"),
+        ];
+        if (S.flags.seTrust === 2) r.push(n("Fit&Gapには田中が入った。2週間後、彼は連携リスクを7項目に切り分け、それぞれに対応案を付けて戻ってきた。「これで全部です。隠し玉はありません」——顧客の技術陣が、静かに頷いた。"));
+        r.push(n("アセスメントの過程で、先方の選定基準も明文化された。——①既存ERP連携の実現性 ②セキュリティ・ガバナンス ③5年TCO。"));
+        return r;
       },
-      coach: { tone: "good", note: "技術的な誠実さは短期的に不利に見えて、エンタープライズでは最強の差別化。選定基準(DC)を握れたのも大きい。" },
-      next: "execMeeting",
+      effects: () => {
+        S.trust += S.flags.seTrust === 2 ? 15 : 12; S.week += 2;
+        md("DC", 2, "確認: ①既存ERP連携の実現性 ②セキュリティ・ガバナンス ③5年TCO");
+        evt("競合DataNova参戦(既存SIer・日本システム技研と連合)");
+        evt("Fit&Gap実施——選定基準を明文化");
+      },
+      coach: () => S.flags.seTrust === 2
+        ? { tone: "good", note: "技術的な誠実さ×SEの実証力は最強の組み合わせ。選定基準(DC)まで押さえた。SEを正式に巻き込んだ判断がここで回収された。" }
+        : { tone: "good", note: "技術的な誠実さは短期的に不利に見えて、エンタープライズでは最強の差別化。選定基準(DC)を握れたのも大きい。" },
+      next: "rivalIntel",
     },
     {
       label: "勢いで押し切る。「ご安心ください、連携は全く問題ありません。すべて対応できます」",
-      result: () => [
-        d("sato", "smile", "「それなら安心です。その前提で、社内説明を進めますね」"),
-        n("商談は加速した。——ただし、あなたはまだ先方のERPのカスタマイズ内容を、一度も見ていない。"),
-      ],
-      effects: () => { S.trust += 5; S.week += 1; S.flags.overpromise = true; S.notes.push("競合: NSG(国産・オンプレ・互換性訴求)"); },
+      result: () => {
+        const r = [
+          d("sato", "smile", "「それなら安心です。その前提で、社内説明を進めますね」"),
+          n("商談は加速した。——ただし、あなたはまだ先方のERPのカスタマイズ内容を、一度も見ていない。"),
+        ];
+        if (S.flags.seTrust >= 1) r.push(n("その夜、田中からSlackが届いた。「その連携、断言して大丈夫ですか? 現物見てませんよね」——あなたは、返信しなかった。"));
+        return r;
+      },
+      effects: () => { S.trust += 5; S.week += 1; S.flags.overpromise = true; evt("『すべて連携可能』と回答(未検証のまま)"); evt("競合DataNova参戦(既存SIer連合)"); },
       coach: { tone: "bad", note: "確認していないことを断言した。エンタープライズ商談で過剰コミットは時限爆弾になる。爆発するのはたいてい一番痛いタイミング。" },
+      next: "rivalIntel",
+    },
+    {
+      label: "競合を叩く。「DataNovaは日本での実績がまだ浅い。オンプレSIerが担ぐクラウドなんて、中途半端ですよ」",
+      result: () => [
+        n("言い終わる前に、空気が冷えたのが分かった。"),
+        d("sato", "angry", "「……日本システム技研さんには、うちの基幹系で15年お世話になっているんですよ」"),
+        n("肝心のERP連携の質問には、結局正面から答えないまま会議が終わった。"),
+      ],
+      effects: () => { S.trust -= 10; S.week += 1; evt("競合批判が裏目——既存ベンダーは顧客の一部だった"); evt("競合DataNova参戦(既存SIer連合)"); },
+      coach: { tone: "bad", note: "競合への直接攻撃は、競合を選定候補に入れた顧客自身への攻撃に聞こえる。語るべきは他社の欠点ではなく自社の価値。" },
+      next: "rivalIntel",
+    },
+  ],
+},
+
+rivalIntel: {
+  bg: "office", cast: ["murata"],
+  tag: () => `第${S.week}週 ― 東陽精機 工場棟 通用口`,
+  stage: "提案",
+  lines: () => S.flags.genbaIgnored ? [
+    n("工場棟の廊下ですれ違ったDERA部長は、会釈だけで通り過ぎようとして——ふと、足を止めた。"),
+    d("murata", "normal", "「……DataNovaの営業が、役員に食い込んでるよ。葛西とかいう若いの。先週、役員向けに『DX勉強会』までやったらしい」"),
+    d("murata", "normal", "「代々原常務も出てたそうだ。——まあ、あんたには関係ないかもしれんがね」"),
+    n("それだけ言うと、彼は行ってしまった。あなたが会議室で商談を積み上げている間に、競合は役員フロアで商談を進めていた。"),
+  ] : [
+    n("工場見学のあと、DERA部長が「ちょっと」とあなたを呼び止めた。"),
+    d("murata", "normal", "「先週な、DataNovaの営業が来てたよ。葛西とかいう若いの。感じのいい男だ——役員向けに『DX勉強会』をやったらしい」"),
+    d("murata", "angry", "「代々原常務も出てたそうだ。あんた、聞いてなかったのか?」"),
+    n("知らなかった。あなたが現場と会議室で商談を積み上げている間に、競合AE・葛西は役員フロアで商談を進めていた。"),
+    d("murata", "normal", "「もうひとつ言っとくとな。五十嵐さんは熱心だが、役員会じゃ発言権はないぞ。あの人は、まだ課長だ」"),
+    n("Championの熱意と、役員会の力学は別物——DERA部長の忠告が、重く残る。さて、どう動く?"),
+  ],
+  choices: [
+    {
+      label: "五十嵐課長に率直に共有し、DataNovaが役員にどんな「ものさし」を刷り込んだのか探ってもらう",
+      result: () => [
+        n("数日後、五十嵐課長から資料が届いた。勉強会で配られたDataNovaの比較観点——彼らは『導入スピード』と『初期コスト』に土俵を寄せている。"),
+        n("なら、こちらは『5年TCO』と『ERP連携の実現性』で戦えばいい。相手の土俵が見えれば、ずらし方も見える。"),
+      ],
+      effects: () => {
+        S.week += 1; S.trust += 3; S.flags.rivalKnown = true; S.flags.rivalCounter = true;
+        md("DC", 2, "確認: DataNovaは『導入スピード/初期コスト』訴求。こちらは『5年TCO/ERP連携』に土俵を引き直す");
+        evt("葛西(DataNova)の役員勉強会が判明——比較軸を入手");
+      },
+      coach: { tone: "good", note: "競合対策とは競合を叩くことではなく、評価軸(DC)を自分の土俵に引き直すこと。Championが『社内の情報網』として機能した。" },
       next: "execMeeting",
     },
     {
-      label: "競合を叩く。「NSGさんのアーキテクチャは10年前のものです。オンプレは時代に逆行していますよ」",
+      label: "役員フロアに正面から打ち返す。阿部と連名で、代々原常務宛に「経営アジェンダ検討会」を申し入れる",
       result: () => [
-        n("言い終わる前に、空気が冷えたのが分かった。"),
-        d("sato", "angry", "「……NSGさんには、うちの基幹系で15年お世話になっているんですよ」"),
-        n("肝心のERP連携の質問には、結局正面から答えないまま会議が終わった。"),
+        n("阿部は「面白い」と即決し、日本法人カントリーマネージャー名義のレターまで付けてくれた。"),
+        n("一週間後——常務室から返事が来た。『30分なら』。ただし、社内の根回しに使った時間で、商談全体は一週遅れた。"),
       ],
-      effects: () => { S.trust -= 10; S.week += 1; S.notes.push("競合: NSG(既存ベンダー、15年の取引)"); },
-      coach: { tone: "bad", note: "競合への直接攻撃は、競合を選定候補に入れた顧客自身への攻撃に聞こえる。語るべきは他社の欠点ではなく自社の価値。" },
+      effects: () => {
+        S.week += 2; S.flags.rivalKnown = true;
+        md("E", 1, "特定: 代々原常務。トップレターで面会枠を確保——勝負はこれから");
+        evt("常務面会枠を確保(カントリーマネージャー連名レター)");
+      },
+      coach: { tone: "neutral", note: "エグゼクティブスポンサーシップは有効打。ただし時間コストは高く、競合の評価軸そのものはまだ見えていない。何を取り、何を捨てたか。" },
+      next: "execMeeting",
+    },
+    {
+      label: "動じない。提案の中身がすべてだ。Fit&Gapの結果と提案書の質をさらに磨き込む",
+      result: () => [
+        n("提案書は、過去最高の出来になった。数字も構成も、隙がない。"),
+        n("——ただし、役員たちが先週の勉強会でどんな『ものさし』を配られたのか、あなたは知らないままだ。"),
+      ],
+      effects: () => { S.week += 1; S.flags.rivalKnown = true; evt("競合情報は追わず、提案磨きに専念"); },
+      coach: { tone: "neutral", note: "提案品質は前提であって差別化ではない。相手が評価軸を握ったまま最終局面に入るのは、試合のルールを相手に書かせるということ。" },
       next: "execMeeting",
     },
   ],
@@ -1101,7 +1277,7 @@ execMeeting: {
       n("提案は五十嵐課長経由で上層部に上がっているはずだ。だが——誰が決裁者なのか、あなたは最後まで掴めていない。"),
       n("面会の打診も、「社内で説明しておきます」と返されるだけ。"),
       d("kevin", "angry", "「Economic Buyerには会えたのか? 会えていないなら、そのディールはフォーキャストから外すぞ」"),
-      n("数週間後、五十嵐課長から連絡が来た。『経営会議で議題には上がったのですが……役員から質問が出て、私では答えきれませんでした。継続審議になっています』"),
+      n("数週間後、五十嵐課長から連絡が来た。『経営会議で議題には上がったのですが……役員から質問が出て、私では答えきれませんでした。結論は、期末の最終プレゼンに持ち越しです』"),
     ];
     return [
       n(S.meddic.C ? "五十嵐課長がセッティングしてくれた、代々原常務との面会。" : "粘り強い調整の末にようやく実現した、代々原常務との面会。"),
@@ -1131,7 +1307,7 @@ execMeeting: {
     return [
       {
         label: "経営の言葉で語る。「本日、システムの話はしません。中計の『データドリブン経営』を24カ月でどう実現するかの話をします」",
-        result: () => S.meddic.M ? [
+        result: () => S.meddic.M >= 2 ? [
           n("あなたは、数字から入った。"),
           n("「現状、経営数値の把握に10営業日。月次レポート工数は全社で320時間。在庫の分断による損失は年間推定2.4億円——これはDERA部長はじめ、現場の方々と一緒に算出した数字です」"),
           d("takahashi", "shock", "「…………」"),
@@ -1144,9 +1320,10 @@ execMeeting: {
         ],
         effects: () => {
           S.flags.ebMet = true; S.week += 1;
-          if (S.meddic.M) { S.trust += 15; S.notes.push("代々原常務、ROI試算に強い関心"); } else { S.trust += 4; }
+          md("E", 2, "面会済: 代々原常務。関心は『経営の何が変わるか』の一点——機能の話は聞かない");
+          if (S.meddic.M >= 2) { S.trust += 15; evt("常務がROI試算に強い関心——『経営会議で使わせてもらう』"); } else { S.trust += 4; evt("常務面会——だが『いくら変わるのか』に答えられず"); }
         },
-        coach: () => S.meddic.M
+        coach: () => S.meddic.M >= 2
           ? { tone: "good", note: "Economic Buyerには製品ではなくビジネス成果を語る。序盤で取ったMetricsがここで効いた。完璧な展開。" }
           : { tone: "neutral", note: "アプローチは正しかったが、裏付けるMetricsがなかった。役員の『いくら?』に答えられない提案は弱い。" },
         next: "procurement",
@@ -1158,7 +1335,7 @@ execMeeting: {
           d("takahashi", "angry", "「……その辺は情シスさんと詰めてください。私が聞きたいのは、そういう話ではないんですよ」"),
           n("15分きっかりで、面会は終わった。"),
         ],
-        effects: () => { S.flags.ebMet = true; S.trust -= 5; S.week += 1; },
+        effects: () => { S.flags.ebMet = true; S.trust -= 5; S.week += 1; md("E", 2, "面会済: 代々原常務——技術の話で15分を浪費。距離は縮まらず"); evt("常務面会——技術説明が空振り"); },
         coach: { tone: "bad", note: "役員が15分くれたのは技術仕様を聞くためではない。聞き手のレイヤーに合わせて語る内容を変えるのはAEの基本。" },
         next: "procurement",
       },
@@ -1169,7 +1346,7 @@ execMeeting: {
           d("takahashi", "angry", "「……価値の説明より先に、値引きの話をするんですね。御社は」"),
           n("空気が一段冷えた。値引きカードを、最も高く売れるはずの場で最も安く切ってしまった。"),
         ],
-        effects: () => { S.flags.ebMet = true; S.trust -= 10; S.discount = 10; S.week += 1; },
+        effects: () => { S.flags.ebMet = true; S.trust -= 10; S.discount = 10; S.week += 1; md("E", 2, "面会済: 代々原常務——初手値引きで『価値に自信なし』の印象を残す"); evt("常務面会で値引きカードを先切り(-10%)"); },
         coach: { tone: "bad", note: "決裁者への初手値引きは『価値に自信がない』というメッセージ。しかも交渉前に自らアンカーを下げた。" },
         next: "procurement",
       },
@@ -1191,13 +1368,17 @@ pocCrisis: {
   choices: [
     {
       label: "言い訳をせず謝罪し、本国のSEリードを巻き込んで48時間で回避策3案を提示する",
-      result: () => [
-        n("その夜、USのソリューションアーキテクトを電話で叩き起こした。"),
-        n("48時間後——回避策3案(追加開発/中間DB/段階移行)を、工数・費用付きで提示した。"),
-        d("sato", "worried", "「……火を着けたのも御社ですが、消し方は誠実でした」"),
-        n("信頼は傷ついたが、案件はまだ生きている。"),
-      ],
-      effects: () => { S.trust -= 8; S.week += 2; S.notes.push("連携課題 → 回避策3案で収拾"); },
+      result: () => {
+        const r = [n("その夜、USのソリューションアーキテクトを電話で叩き起こした。")];
+        if (S.flags.seTrust === 2) r.push(n("そして田中は、何も言わずに徹夜で検証環境を回してくれた。「貸しですからね、これ」"));
+        r.push(
+          n("48時間後——回避策3案(追加開発/中間DB/段階移行)を、工数・費用付きで提示した。"),
+          d("sato", "worried", "「……火を着けたのも御社ですが、消し方は誠実でした」"),
+          n("信頼は傷ついたが、案件はまだ生きている。"),
+        );
+        return r;
+      },
+      effects: () => { S.trust -= S.flags.seTrust === 2 ? 4 : 8; S.week += 2; evt("連携問題が発覚 → 回避策3案で収拾"); },
       coach: { tone: "neutral", note: "事故後の最善手。スピード・透明性・選択肢の3点セットはリカバリーの定石。ただし、そもそも事故を起こさないのが一番安い。" },
       next: "procurement",
     },
@@ -1208,7 +1389,11 @@ pocCrisis: {
         d("sato", "angry", "「……分かりました。NSGさんは現物を確認した上で見積もると言っています。今後の窓口は、購買部にお願いします」"),
         n("Championだった男は、この瞬間に——ただの調達窓口になった。"),
       ],
-      effects: () => { S.trust -= 30; S.week += 1; S.meddic.C = false; S.flags.blamed = true; },
+      effects: () => {
+        S.trust -= 30; S.week += 1; S.flags.blamed = true;
+        md("C", 0, "喪失: 五十嵐課長は社内での信用を失い、ただの調達窓口になった");
+        evt("責任転嫁でChampion喪失——窓口は購買部へ");
+      },
       coach: { tone: "bad", note: "自分の過剰コミットを顧客のせいにした時点で商談は実質終了。Championの社内的な恥は、絶対に放置してはいけない。" },
       next: "procurement",
     },
@@ -1230,11 +1415,12 @@ procurement: {
   tag: () => `第${S.week}週 ― 東陽精機 購買部`,
   stage: "交渉",
   lines: () => [
-    n("経営会議を前に、購買部の高牟礼氏から「条件面の整理をしたい」と呼び出された。"),
-    d("nishino", "normal", "「率直に申し上げます。NSGさんの提案は、御社より2割安い」"),
+    n("最終提案を前に、購買部の高牟礼氏から「条件面の整理をしたい」と呼び出された。"),
+    d("nishino", "normal", "「率直に申し上げます。DataNovaさんの提案は、御社より2割安い」"),
+    d("nishino", "smile", "「葛西さん……DataNovaのご担当は、ずいぶんこまめにいらっしゃいますよ。うちに」"),
     d("nishino", "normal", "「同水準まで調整いただければ、役員会への上申はスムーズです」"),
     d("nishino", "smile", "「……ベンダーさんは皆さん、期末はお忙しいんでしょう?」"),
-    n("期末を、見透かされている。さあ、どうする?"),
+    n("期末を、見透かされている。この男、どちらの味方でもない——審査の門番だ。さあ、どうする?"),
   ],
   choices: [
     {
@@ -1245,25 +1431,33 @@ procurement: {
         d("nishino", "smile", "「いいでしょう。その条件で上に諮ります」"),
         n("値引き幅を抑えつつ、先方の都合ではなくこちらの期限で商談が動き始めた。"),
       ],
-      effects: () => { S.discount = Math.max(S.discount, 10); S.trust += 5; S.week += 1; S.flags.closeInQuarter = true; S.notes.push("条件合意: 3年契約+期内発注で10%"); },
+      effects: () => { S.discount = Math.max(S.discount, 10); S.trust += 5; S.week += 1; S.flags.closeInQuarter = true; evt("条件合意: 3年契約+期内発注で10%"); },
       coach: { tone: "good", note: "値引きは『あげる』ものではなく『交換する』もの。複数年契約と発注期限という対価を取った、模範的なネゴシエーション。" },
-      next: "ending",
+      next: "finalProposal",
     },
     {
       label: "期末でもあるし、要求どおり20%値引きを受け入れて確実に決める",
-      result: () => [
+      result: () => S.discount >= 10 ? [
+        d("nishino", "smile", "「20%、承知しました。——ああ、それと」"),
+        d("nishino", "normal", "「先日の『特別価格』のお話も伺っていますよ。では、そこを起点にさらに20%、ということでよろしいですね?」"),
+        n("先に切った値引きカードが、アンカーとして自分に返ってきた。断り切れないまま、値引きは合計25%まで膨らんだ。"),
+      ] : [
         d("nishino", "smile", "「20%、承知しました」"),
         n("高牟礼氏は満足げに頷いた——そして、言った。"),
         d("nishino", "normal", "「では、この金額を起点に、役員会向けの最終調整をしましょう」"),
         n("即答の値引きは、さらなる値引き余地の証明として受け取られた。利幅は大きく削れ、感謝はされていない。"),
       ],
-      effects: () => { S.discount = Math.max(S.discount, 20); S.week += 1; S.flags.closeInQuarter = true; },
+      effects: () => {
+        S.discount = S.discount >= 10 ? Math.max(S.discount + 15, 25) : 20;
+        S.week += 1; S.flags.closeInQuarter = true;
+        evt(`値引き要求を受諾——合計${S.discount >= 25 ? "25%超。利幅は崩壊寸前" : "20%。利幅を大きく削る"}`);
+      },
       coach: { tone: "bad", note: "抵抗なき値引きは『最初の見積りは何だったのか』という不信を生み、次の値引き要求を呼ぶ。対価なき譲歩はしない。" },
-      next: "ending",
+      next: "finalProposal",
     },
     {
-      label: "「弊社とNSGでは提供価値が違います」と値引きを一切拒否する",
-      result: () => (S.trust >= 70 && S.meddic.C) ? [
+      label: "「弊社とDataNovaでは提供価値が違います」と値引きを一切拒否する",
+      result: () => (S.trust >= 70 && S.meddic.C >= 2) ? [
         n("強気の回答に高牟礼氏は渋い顔をしたが——数日後、五十嵐課長から連絡が来た。"),
         n("『常務が「価格より実現性で選ぶ」と言ってくれました。現場のDERA部長も、御社推しです』"),
         n("価値が、価格を守り切った。"),
@@ -1274,12 +1468,84 @@ procurement: {
       ],
       effects: () => {
         S.week += 1;
-        if (S.trust >= 70 && S.meddic.C) { S.discount = Math.max(S.discount, 5); S.trust += 3; S.flags.closeInQuarter = true; }
-        else { S.flags.stall = true; S.week += 2; }
+        if (S.trust >= 70 && S.meddic.C >= 2) { S.discount = Math.max(S.discount, 5); S.trust += 3; S.flags.closeInQuarter = true; evt("値引き防衛成功——現場と常務が価値で支持"); }
+        else { S.flags.stall = true; S.week += 2; evt("価格交渉が膠着——数週間を喪失"); }
       },
-      coach: () => (S.trust >= 70 && S.meddic.C)
+      coach: () => (S.trust >= 70 && S.meddic.C >= 2)
         ? { tone: "good", note: "値引き拒否はChampionと信頼という後ろ盾があって初めて成立する。今回は土台があったから通った。" }
         : { tone: "bad", note: "強気な価格防衛は、社内に味方がいる時だけ使える技。後ろ盾なしのゼロ回答は商談を凍らせる。" },
+      next: "finalProposal",
+    },
+  ],
+},
+
+finalProposal: {
+  bg: "exec", cast: ["takahashi", "sato"],
+  tag: () => `最終提案 ― 東陽精機 役員会議室`,
+  stage: "最終提案",
+  lines: () => {
+    const L = [];
+    L.push(n("最終週。東陽精機、役員会議室。楕円卓の向こうに役員が並び、中央に代々原常務。あなたの四半期のすべてが、この30分に載っている。"));
+    /* 競合戦の回収 */
+    if (S.flags.rivalCounter) L.push(n("配布資料の端に、DataNovaの比較表が挟まっている。——問題ない。比較の土俵は、すでに『5年TCO』と『ERP連携』に引き直してある。葛西の刷り込んだものさしは、もう古い。"));
+    else if (S.flags.rivalKnown) L.push(n("机上に、DataNovaの比較表。『導入スピード』『初期コスト』——葛西が役員に刷り込んだ相手の土俵で、この会議は始まろうとしている。"));
+    else L.push(n("机上に、見覚えのない比較表が置かれていた。DataNova——あなたの知らないうちに、商談は二社間の決勝戦になっていた。しかも相手は昨日、この部屋でプレゼンを終えている。"));
+    /* 初週の仕込みの回収 */
+    L.push(S.flags.prep
+      ? n("あなたは中計の一文から始めた。「『データドリブン経営への転換』——御社中期経営計画の3ページ目です。本日は、その実現の話をします」。常務の目が、わずかに変わった。")
+      : n("あなたは製品概要から始めた。立ち上がりは悪くない。だが、どこか一般論に聞こえていないか——役員たちの表情からは、読み取れない。"));
+    /* Metricsの回収 */
+    L.push(S.meddic.M >= 2
+      ? n("「月次320時間。在庫損失、年2.4億円。——現場の皆様と一緒に算出した数字です」。資料をめくる音が、止まった。数字は、役員会の共通言語だ。")
+      : d("takahashi", "normal", "「……で、結局。いくら変わるんですか、うちの経営は」——その一点に、あなたは最後まで数字で答えられなかった。"));
+    /* SEの回収 */
+    if (S.flags.seTrust === 2) L.push(n("セキュリティ担当役員の細かい質問には、同席した田中が即答した。「その構成で監査要件は満たせます。根拠は3点——」。技術への信頼は、人が運んでくる。"));
+    else if (S.flags.overpromise && !S.flags.crisisDone) L.push(n("「ERP連携は、本当にすべて問題ないのですね?」——情シス役員の念押しに、あなたは頷くしかなかった。検証していないことを、もう一度。"));
+    /* Championの回収 */
+    L.push(S.meddic.C >= 2
+      ? d("sato", "normal", "「——補足します。本提案は現場・情シス双方でレビュー済みです。この内容なら、うちは動けます」——五十嵐課長の声は、静かだが揺れなかった。")
+      : n("五十嵐課長は、資料に目を落としたまま——最後まで、発言しなかった。"));
+    /* 現場の回収 */
+    if (S.flags.genbaAlly && !S.flags.genbaIgnored) L.push(n("事前に回覧された根回しメモには、DERA部長の一筆があった。『現場としては、話を聞きに来た唯一のベンダーを推す』。"));
+    else if (S.flags.genbaIgnored) L.push(n("製造担当役員が、資料の隅を指でなぞった。「……現場の合意は、取れているの?」。DERA部長の名前が出た瞬間、会議室の空気がわずかに重くなった。"));
+    /* Decision Processの回収 */
+    L.push(S.meddic.DP >= 2
+      ? n("購買審査の論点——支払条件、SLA、撤退条項——は、提案書の別紙にすべて織り込み済みだ。高牟礼氏は資料を確認し、小さく頷いた。会議は、止まらない。")
+      : d("nishino", "normal", "「——ひとつ、よろしいですか」。常務の隣で高牟礼氏が、初めて口を開いた。「この契約条件のままでは、購買審査を通せません」。あなたの知らなかった関門が、最終盤で口を開けた。"));
+    L.push(d("takahashi", "normal", "「……分かりました。それで——御社は今日、この場で何を決めてほしいのですか」"));
+    return L;
+  },
+  choices: [
+    {
+      label: "決断を求める。「本日、導入のご決定を頂きたい。御社の次の中計を支えるデータ基盤の提案です」",
+      result: () => [
+        n("沈黙。役員たちの視線が、常務に集まる。"),
+        d("takahashi", "normal", "「——持ち帰らず、この場で聞く。その姿勢は買います」"),
+        n("常務は手元の資料を閉じた。結論は数日内に出る。あなたにできることは、もう何もない。"),
+      ],
+      effects: () => { S.week += 1; S.flags.finalAsk = "close"; evt("最終提案: 即時決断を要求(フルスコープ)"); },
+      coach: { tone: "good", note: "クロージングの要求は、それまでに積んだ担保(EB・Champion・Metrics・競合対策)の総決算。担保が薄いと、同じ言葉が『焦り』に聞こえる。" },
+      next: "ending",
+    },
+    {
+      label: "段階導入を提示する。「まず生産管理領域に絞り、90日で効果を実証します。全社展開はその数字を見てからで構いません」",
+      result: () => [
+        n("役員たちの肩から、わずかに力が抜けたのが分かった。大きな決断を、小さな決断に分解する——リスクの言語で話す提案だ。"),
+        d("takahashi", "normal", "「……90日で数字が出なければ?」"),
+        n("「その時は、拡張を白紙に戻して頂いて構いません」。あなたは、即答した。"),
+      ],
+      effects: () => { S.week += 1; S.flags.finalAsk = "land"; evt("最終提案: 段階導入(Land & Expand)を提示"); },
+      coach: { tone: "neutral", note: "Land & Expandは外資SaaSの王道。金額は減るが、意思決定のハードルを劇的に下げる。大勝ちの芽より、確実な橋頭堡を取る判断。" },
+      next: "ending",
+    },
+    {
+      label: "即答を避ける。「本日のご指摘を反映し、来週改めて最終版をお持ちします」",
+      result: () => [
+        n("丁寧な対応、ではある。だが会議室の空気が、ゆっくりと弛緩していくのが分かった。"),
+        n("役員たちが求めていたのは完璧な資料ではなく、決断の理由だ。——次にこのメンバーが揃う日程を、誰も口にしないまま散会した。"),
+      ],
+      effects: () => { S.week += 2; S.flags.finalAsk = "defer"; evt("最終提案: 結論を持ち帰り"); },
+      coach: { tone: "bad", note: "役員会は『全員の時間が最も高い会議体』。そこで決断を求めない提案は、事実上の先送り宣言。No Decisionへの最大の入口。" },
       next: "ending",
     },
   ],
@@ -1292,54 +1558,70 @@ procurement: {
 ============================================================ */
 function computeEnding() {
   const m = S.meddic;
-  const meddicCount = Object.values(m).filter(Boolean).length;
+  const meddicCount = Object.values(m).filter(v => v >= 2).length;
+
+  /* 商談パワー: 顧客側の「買う理由」の総和 */
   let power = S.trust;
-  if (m.C) power += 15;
+  if (m.C >= 2) power += 12;
   if (S.flags.ebMet) power += 15;
-  if (m.DC) power += 8;
-  if (m.M) power += 8;
+  if (m.DC >= 2) power += 8;
+  if (m.M >= 2) power += 10;
+  if (m.DP >= 2) power += 6;
+  if (S.flags.seTrust === 2) power += 6;
+  if (S.flags.rivalCounter) power += 8;
   if (S.flags.genbaIgnored) power -= 12;
   if (S.flags.blamed) power -= 25;
+  if (S.flags.finalAsk === "defer") power -= 12;
   const inQuarter = S.week <= QUARTER_WEEKS && S.flags.closeInQuarter && !S.flags.stall;
 
-  let type, title, story;
-  if (S.trust < 30 || S.flags.blamed) {
-    type = "loss"; title = "失注 ― 商談主導権の喪失";
-    story = `<p>役員会の数日後、五十嵐課長から短いメールが届いた。<b>「諸事情を総合的に勘案し、今回はNSG社の提案を採用することになりました」</b>。電話をかけたが、もう以前のように繋がることはなかった。</p><p>阿部との1on1。「何が起きたのか、Loss Reviewで一緒に振り返ろう」。パイプラインに空いた3,000万円の穴が、静かにあなたを見上げている。</p>`;
-  } else if (power >= 80) {
-    if (inQuarter) {
-      type = "win"; title = "受注 ― 期内クローズ達成!";
-      story = `<p>四半期最終週の木曜、五十嵐課長から着信。<b>「経営会議、承認されました。発注書、今日付で出します」</b>。受話器を置いた瞬間、フロアの同僚たちがゴングを鳴らした。</p><p>代々原常務はあなたのROI資料をほぼそのまま経営会議で使い、DERA部長は「現場の話を聞いた唯一のベンダー」と援護したという。値引き${S.discount}%、3年契約。<b>クォータ達成。</b>阿部のSlackには🎉が並んだ。——来期のクォータは、たぶん上がる。</p>`;
-    } else {
-      type = "slip"; title = "受注見込み ― ただし期ズレ(Slip)";
-      story = `<p>商談自体は勝ち筋に乗った。だが決裁が四半期をまたぎ、<b>発注は来期にずれ込んだ</b>。阿部は「Good dealだ。ただし——」と言ってフォーキャスト画面を指した。<b>「今期のコミットには入らない」</b>。</p><p>案件の中身は良い。失ったのは、時間だけだ。そして外資の営業にとって、時間はクォータと同義である。</p>`;
-    }
-  } else if (power >= 60) {
-    type = "slip"; title = "継続審議 ― クローズに至らず";
-    story = `<p>経営会議の結論は<b>「継続検討」</b>。悪い感触ではないが、決定打に欠けた。${!S.flags.ebMet ? "決裁者である代々原常務と直接話せていれば、結果は違ったかもしれない。" : ""}${!m.M ? "投資対効果を数字で示せていれば、役員会の景色は違ったはずだ。" : ""}${!m.C ? "社内であなたの代わりに戦ってくれる人が、最後までいなかった。" : ""}</p><p>案件はまだ生きている。だが今期の数字には間に合わなかった。フォーキャスト会議でのあなたのステータスは「Slipped」。来期、この続きを取りに行く。</p>`;
-  } else {
-    type = "loss"; title = "失注 ― 競合NSGに敗北";
-    story = `<p>役員会はNSGを選んだ。決め手は「既存ベンダーとしての安心感」と「現場・役員への丁寧な根回し」だったと、後に五十嵐課長が教えてくれた。<b>商談は会議室の中ではなく、あなたの見えない場所で決まっていた</b>。</p><p>Loss Reviewで阿部が言った。「製品で負けたんじゃない。商談の進め方で負けたんだ。——次は、どう戦う?」</p>`;
-  }
+  /* ---- エンディング決定 (S/A/B/C/D/E/F) ---- */
+  let grade;
+  if (S.trust < 30 || S.flags.blamed) grade = "E";
+  else if (power >= 100 && S.discount >= 25) grade = "F";
+  else if (S.flags.finalAsk === "defer") grade = power >= 95 ? "C" : "D";
+  else if (S.flags.finalAsk === "land") grade = power >= 70 ? "B" : "C";
+  else if (power >= 140 && inQuarter && S.discount <= 10 && m.C >= 2 && S.flags.ebMet && S.flags.rivalCounter) grade = "S";
+  else if (power >= 108 && inQuarter) grade = "A";
+  else if (power >= 108) grade = "B";
+  else if (power >= 82) grade = "C";
+  else if (m.I < 2 || m.M < 2) grade = "D";
+  else grade = "E";
+
+  const E = {
+    S: { type: "win", title: "S ― Strategic Closed Won「戦略的受注」",
+      story: `<p>翌朝9時、五十嵐課長から着信。<b>「経営会議、満場一致です。しかも常務が『全社のデータ戦略として来期の中計に載せる』と」</b>。単年の商談が、経営アジェンダに化けた瞬間だった。</p><p>値引き${S.discount}%で利幅を守り切り、3年契約+全社展開ロードマップ付き。DERA部長は「現場の話を聞いた唯一のベンダー」と役員会で言い切り、田中は次の案件でもあなたと組みたいと言っている。<b>President's Club、内定。</b></p><p>数日後、LinkedInに接続申請が届いた。——葛西(DataNova)。メッセージは一行。<b>「完敗でした。今度、勝ち方を教えてください」</b>。最高のライバルに勝った証だ。</p>` },
+    A: { type: "win", title: "A ― Closed Won「受注」",
+      story: `<p>四半期最終週の木曜、五十嵐課長から着信。<b>「経営会議、承認されました。発注書、今日付で出します」</b>。受話器を置いた瞬間、フロアの同僚たちがゴングを鳴らした。</p><p>${S.discount <= 10 ? `値引き${S.discount}%——利幅も守った。Deal Deskのレビューも一発通過。<b>文句なしのクォータ達成だ。</b>` : `<b>クォータ達成。</b>ただしDeal Deskのレビューでは値引き${S.discount}%に赤ペンが入った。「勝ち方」の質は、来期の宿題だ。`}阿部のSlackには🎉が並んだ。——来期のクォータは、たぶん上がる。</p>` },
+    B: { type: "slip", title: "B ― Land「橋頭堡の確保」",
+      story: `<p>${S.flags.finalAsk === "land" ? "役員会は段階導入案を承認した。" : "フルスコープの決裁は期内に間に合わなかった——だが交渉の末、第一フェーズの切り出しで合意した。"}<b>生産管理領域・90日・初期契約のみ。</b>金額はコミットの3分の1。ゴングは、鳴らない。</p><p>だが阿部は言った。「悪くない。<b>Landしてしまえば、こっちのものだ</b>。90日で数字を出して、来期にExpandを取れ。使用実績のあるベンダーを剥がすのは、新規で入るより10倍難しい——今度は守る側だ」</p><p>東陽精機の社員証ストラップが、あなたのデスクの引き出しに増えた。ここからが本番だ。</p>` },
+    C: { type: "slip", title: "C ― PoC「実証止まり」",
+      story: `<p>役員会の結論は<b>「有償PoCで検証の上、来期再審議」</b>。契約書ではなく、検証覚書にサインが入った。</p><p>手応えはあった。だが、決裁の瞬間に必要な材料が足りなかった。${!S.flags.ebMet ? "<b>決裁者と、一度も直接話せていなかった。</b>" : ""}${m.M < 2 ? "<b>『いくら変わるのか』に、最後まで数字で答えられなかった。</b>" : ""}${m.C < 2 ? "<b>役員会の中で、あなたの代わりに戦う人がいなかった。</b>" : ""}${S.flags.finalAsk === "defer" ? "<b>そして最後の場で、決断を求めなかった。</b>" : ""}</p><p>阿部は静かに言った。「PoCは商談の延命装置にもなれば、墓場にもなる。——来期、決めきれるか?」</p>` },
+    D: { type: "loss", title: "D ― No Decision「顧客は、何も決めなかった」",
+      story: `<p>2週間後、五十嵐課長から丁寧なメールが届いた。<b>「社内の優先順位を再検討することになり、本件はいったん保留となりました」</b>。</p><p>DataNovaに負けたのではない。<b>東陽精機は、何も決めなかった。</b>現状維持——最強の競合に負けたのだ。${m.I < 2 ? "課題の痛みを、変革が必要なレベルまで言語化できていなかった。" : ""}${m.M < 2 ? "「やらないことの損失」を数字で突きつけられていなかった。" : ""}</p><p>Loss Reviewで阿部が言った。「一番悔しい負け方だ。敵の名前すら、残らない。——顧客が『決めない』のは、決める理由を渡せなかった営業の責任だ」</p>` },
+    E: { type: "loss", title: "E ― Closed Lost「DataNovaに敗北」",
+      story: `<p>役員会はDataNovaを選んだ。決め手は「既存SIerとの連携による安心感」と「役員への丁寧な刷り込み」だったと、後に五十嵐課長が教えてくれた。${S.flags.blamed ? "——そして、あの日の責任転嫁の一言が、最後まで尾を引いていたことも。" : ""}</p><p><b>商談は会議室の中ではなく、あなたの見えない場所で決まっていた。</b>葛西は製品で勝ったのではない。役員フロアで、評価のものさしを先に握っただけだ。</p><p>Loss Reviewで阿部が言った。「製品で負けたんじゃない。商談の進め方で負けたんだ。——次は、どう戦う?」</p>` },
+    F: { type: "loss", title: "F ― Internal Lost「社内で、詰んだ」",
+      story: `<p>東陽精機は、乗り気だった。五十嵐課長は発注稟議の準備まで始めていた。——だが。</p><p><b>値引き${S.discount}%の承認申請は、USのDeal Deskに却下された。</b>「この条件では戦略的意義があっても利益が出ない。再交渉せよ」。だが期末の再交渉は、顧客の社内スケジュール上、もう不可能だった。</p><p>顧客のYESと、社内のNO。阿部は頭を抱えて言った。「……すまん、俺も通せなかった。<b>外資の商談はな、顧客と社内、二正面作戦なんだ</b>。値引きは最後の武器で、最初のカードじゃない」</p><p>受注目前の案件が、自社の承認プロセスで消えた。——外資AEが一番眠れなくなる負け方だ。</p>` },
+  }[grade];
 
   const meddicScore = meddicCount * 10;
   const trustScore = Math.round(Math.max(0, Math.min(S.trust, 100)) / 5);
   const marginScore = Math.max(0, 10 - Math.round(S.discount / 2));
-  const timeScore = (type === "win" && inQuarter) ? 10 : (type === "slip" ? 4 : 0);
+  const timeScore = (grade === "S" || grade === "A") ? 10 : grade === "B" ? 6 : grade === "C" ? 4 : 0;
   const total = meddicScore + trustScore + marginScore + timeScore;
 
   let rank;
-  if (total >= 90) rank = "S ― President's Club 確実。グローバル表彰の常連クラス。";
-  else if (total >= 75) rank = "A ― トップパフォーマー。クォータ達成が見える実力。";
-  else if (total >= 55) rank = "B ― 中堅AE。型は身についてきた。あとは実行の精度。";
-  else if (total >= 35) rank = "C ― 要PIP回避。マネージャーとの1on1が増えそうだ。";
-  else rank = "D ― セールスイネーブルメント研修への再入校を推奨。";
+  if (total >= 90) rank = "President's Club 確実。グローバル表彰の常連クラス。";
+  else if (total >= 75) rank = "トップパフォーマー。クォータ達成が見える実力。";
+  else if (total >= 55) rank = "中堅AE。型は身についてきた。あとは実行の精度。";
+  else if (total >= 35) rank = "要PIP回避。マネージャーとの1on1が増えそうだ。";
+  else rank = "セールスイネーブルメント研修への再入校を推奨。";
 
-  return { type, title, story, total, rank, breakdown: [
-    ["MEDDIC 充足(" + meddicCount + "/6)", meddicScore + " / 60"],
+  return { type: E.type, title: E.title, story: E.story, total, rank, breakdown: [
+    ["MEDDIC 確認済み(" + meddicCount + "/6)", meddicScore + " / 60"],
     ["顧客との信頼度", trustScore + " / 20"],
     ["利幅の防衛(値引き" + S.discount + "%)", marginScore + " / 10"],
-    ["期内クローズ", timeScore + " / 10"],
+    ["クロージングの質", timeScore + " / 10"],
   ]};
 }
 
@@ -1480,7 +1762,7 @@ function commitChoice(idx) {
 
   const before = {
     trust: S.trust, week: S.week, discount: S.discount,
-    meddic: Object.entries(S.meddic).filter(([, v]) => v).map(([k]) => k),
+    meddic: { ...S.meddic },
   };
   if (c.effects) c.effects();
   S.trust = Math.max(0, Math.min(100, S.trust));
@@ -1496,10 +1778,11 @@ function commitChoice(idx) {
   const dd = S.discount - before.discount;
   if (dd > 0) { pushDelta(`値引き +${dd}%`, "down"); bumpHud("hi-disc"); }
   Object.entries(S.meddic).forEach(([k, v]) => {
-    const had = before.meddic.includes(k);
+    const was = before.meddic[k];
     const def = MEDDIC_DEFS.find(x => x.key === k);
-    if (v && !had) { pushDelta(`MEDDIC獲得: ${def.name} ✓`, "meddic"); bumpHud("hi-meddic"); }
-    if (!v && had) { pushDelta(`MEDDIC喪失: ${def.name} ✗`, "down"); bumpHud("hi-meddic"); }
+    if (v >= 2 && was < 2) { pushDelta(`MEDDIC確認: ${def.name} ✓`, "meddic"); bumpHud("hi-meddic"); }
+    else if (v === 1 && was === 0) { pushDelta(`MEDDIC仮説: ${def.name} ?`, "meddic"); bumpHud("hi-meddic"); }
+    else if (v === 0 && was > 0) { pushDelta(`MEDDIC喪失: ${def.name} ✗`, "down"); bumpHud("hi-meddic"); }
   });
 
   renderHud();
@@ -1569,14 +1852,14 @@ function renderHud() {
   $("hudTrust").textContent = S.trust;
   $("trustFill").style.width = S.trust + "%";
   $("hudDisc").textContent = S.discount + "%";
-  $("hudMeddic").textContent = Object.values(S.meddic).filter(Boolean).length + "/6";
+  $("hudMeddic").textContent = Object.values(S.meddic).filter(v => v >= 2).length + "/6";
   renderDrawer();
 }
 
 function renderDrawer() {
   $("drawer").innerHTML = `
     <div class="drawer-head">
-      <span class="title">案件ファイル</span>
+      <span class="title">案件ファイル ― 東陽精機</span>
       <button class="drawer-close" onclick="toggleDrawer(false)" aria-label="閉じる">✕</button>
     </div>
     <h3>案件ステータス</h3>
@@ -1584,14 +1867,21 @@ function renderDrawer() {
     <div class="d-row"><span>信頼度</span><b>${S.trust} / 100</b></div>
     <div class="d-row"><span>商談ステージ</span><b>${S.stage}</b></div>
     <div class="d-row"><span>提示値引き</span><b>${S.discount} %</b></div>
-    <h3>MEDDIC チェック</h3>
-    ${MEDDIC_DEFS.map(m => `
-      <div class="meddic-item ${S.meddic[m.key] ? "on" : ""}">
+    <h3>MEDDIC 攻略ノート</h3>
+    ${MEDDIC_DEFS.map(m => {
+      const lv = S.meddic[m.key];
+      const cls = lv >= 2 ? "on" : lv === 1 ? "mid" : "";
+      const lvName = lv >= 2 ? "確認済み" : lv === 1 ? "仮説" : "未確認";
+      return `
+      <div class="meddic-item ${cls}">
         <span class="dot"></span>
-        <span><b>${m.name}</b><small>${m.jp}</small></span>
-      </div>`).join("")}
-    <h3>案件メモ</h3>
-    <div id="drawerNotes">${S.notes.length ? S.notes.map(x => "・" + x).join("<br>") : "―"}</div>
+        <span><b>${m.name}<em class="lv">${lvName}</em></b><small>${S.mdNote[m.key] || m.q}</small></span>
+      </div>`;
+    }).join("")}
+    <h3>商談ログ</h3>
+    <div class="evt-log">${S.events.length
+      ? S.events.map(e => `<div class="evt"><span class="ew">W${e.w}</span><span>${e.t}</span></div>`).join("")
+      : `<div class="evt"><span>まだ動きはない。</span></div>`}</div>
     <h3>操作</h3>
     <div id="drawerNotes">クリック / スペース / Enter で読み進め。<br>選択肢で商談の運命が決まる。</div>`;
 }
